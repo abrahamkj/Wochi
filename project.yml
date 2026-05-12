@@ -1,0 +1,152 @@
+name: Wochi
+options:
+  bundleIdPrefix: com.yourname
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "15"
+  createIntermediateGroups: true
+  groupSortPosition: top
+  defaultConfig: Debug
+
+settings:
+  base:
+    SWIFT_VERSION: 5.9
+    ENABLE_BITCODE: NO
+    MARKETING_VERSION: 1.0.0
+    CURRENT_PROJECT_VERSION: 1
+    DEVELOPMENT_TEAM: ""           # ← fill in your Apple Developer Team ID
+
+targets:
+  Wochi:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    bundleId: com.yourname.wochi
+    info:
+      path: Wochi/Resources/Info.plist
+      properties:
+        CFBundleName: Wochi
+        CFBundleDisplayName: Wochi
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        UILaunchStoryboardName: LaunchScreen
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations: {}
+        NSCameraUsageDescription: Wochi benötigt die Kamera zum Scannen von Kassenbons.
+        NSPhotoLibraryUsageDescription: Wochi benötigt den Zugriff auf deine Fotos zum Importieren von Kassenbons.
+        NSSpeechRecognitionUsageDescription: Wochi benötigt die Spracheingabe für Siri-Funktionen.
+        NSUserNotificationsUsageDescription: Wochi sendet dir Hinweise zu ablaufenden Produkten und Angeboten.
+        CFBundleURLTypes:
+          - CFBundleURLSchemes:
+              - wochi
+            CFBundleURLName: com.yourname.wochi
+        NSSupportsLiveActivities: false
+        UIRequiresFullScreen: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+
+    entitlements:
+      path: Wochi/Resources/Wochi.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.yourname.wochi
+        com.apple.developer.icloud-services:
+          - CloudKit
+        com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)com.yourname.wochi
+        aps-environment: development        # change to 'production' for App Store
+        com.apple.developer.associated-domains: []
+
+    settings:
+      base:
+        PRODUCT_NAME: Wochi
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourname.wochi
+        INFOPLIST_FILE: Wochi/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Wochi/Resources/Wochi.entitlements
+        SWIFT_EMIT_LOC_STRINGS: YES
+        # Capabilities wired via entitlements — enable in Xcode Signing & Capabilities tab:
+        #   ✓ iCloud (CloudKit)
+        #   ✓ Push Notifications
+        #   ✓ Background Modes: Remote notifications, Background fetch, Background processing
+        #   ✓ App Intents (automatic with AppIntents framework)
+      configs:
+        Debug:
+          DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+          ENABLE_TESTABILITY: YES
+        Release:
+          DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: ""
+          ENABLE_TESTABILITY: NO
+
+    sources:
+      - path: Wochi
+        excludes:
+          - "**/.DS_Store"
+
+    resources:
+      - path: Wochi/Resources/Localizable.strings
+      - path: Wochi/Resources/Assets.xcassets
+
+    dependencies:
+      - framework: SwiftUI.framework
+        implicit: true
+      - framework: SwiftData.framework
+        implicit: true
+      - framework: CloudKit.framework
+        implicit: true
+      - framework: Vision.framework
+        implicit: true
+      - framework: AppIntents.framework
+        implicit: true
+      - framework: UserNotifications.framework
+        implicit: true
+      - framework: AuthenticationServices.framework
+        implicit: true
+      - framework: Charts.framework
+        implicit: true
+      - framework: AVFoundation.framework
+        implicit: true
+      - framework: CoreLocation.framework
+        implicit: true
+
+  WochiTests:
+    type: bundle.unit-test
+    platform: iOS
+    bundleId: com.yourname.wochi.tests
+    sources:
+      - path: WochiTests
+    dependencies:
+      - target: Wochi
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourname.wochi.tests
+
+schemes:
+  Wochi:
+    build:
+      targets:
+        Wochi: all
+        WochiTests: [test]
+    run:
+      config: Debug
+      environmentVariables:
+        - variable: XCODE_RUNNING_FOR_PREVIEWS
+          value: "1"
+          isEnabled: false
+    test:
+      config: Debug
+      targets:
+        - WochiTests
+    profile:
+      config: Release
+    archive:
+      config: Release
