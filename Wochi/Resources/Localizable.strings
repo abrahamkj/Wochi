@@ -1,0 +1,68 @@
+/* Wochi – German (de) Localizable.strings */
+
+// MARK: - Tabs
+"tab.shopping" = "Einkauf";
+"tab.pantry" = "Vorrat";
+"tab.budget" = "Budget";
+"tab.settings" = "Einstellungen";
+
+// MARK: - Onboarding Slides
+"onboarding.slide1.title" = "Dein Haushalt, organisiert";
+"onboarding.slide1.subtitle" = "Teile Einkaufslisten mit allen Haushaltsmitgliedern in Echtzeit.";
+"onboarding.slide2.title" = "Nie mehr vergessen";
+"onboarding.slide2.subtitle" = "Behalte deinen Vorrat im Blick und erhalte Benachrichtigungen vor dem Ablaufen.";
+"onboarding.slide3.title" = "Klüger einkaufen";
+"onboarding.slide3.subtitle" = "Vergleiche Preise und spare Geld mit wöchentlichen Angeboten.";
+
+// MARK: - Common Buttons
+"button.continue" = "Weiter";
+"button.skip" = "Überspringen";
+"button.save" = "Speichern";
+"button.cancel" = "Abbrechen";
+"button.delete" = "Löschen";
+"button.confirm" = "Bestätigen";
+"button.add" = "Hinzufügen";
+"button.add.more" = "Hinzufügen & weiteres";
+
+// MARK: - Household
+"household.create.title" = "Neuen Haushalt erstellen";
+"household.join.title" = "Einladung annehmen";
+"household.name.placeholder" = "Name deines Haushalts";
+
+// MARK: - Shopping
+"shopping.empty.title" = "Noch keine Artikel";
+"shopping.empty.subtitle" = "Füge deinen ersten Artikel hinzu";
+"shopping.list.add" = "Neue Liste";
+"shopping.item.add" = "Artikel hinzufügen";
+"shopping.checked.clear" = "Alle erledigten löschen";
+
+// MARK: - Pantry
+"pantry.empty.title" = "Dein Vorrat ist leer";
+"pantry.empty.subtitle" = "Füge deinen ersten Artikel hinzu";
+"pantry.filter.expiring" = "Ablaufend";
+"pantry.filter.low" = "Wenig vorrätig";
+"pantry.quickaction.used" = "Aufgebraucht";
+
+// MARK: - Budget
+"budget.empty.title" = "Noch kein Kassenbon";
+"budget.empty.subtitle" = "Scanne deinen ersten Kassenbon";
+"budget.receipts.count" = "Basierend auf %d Kassenbons";
+"budget.scan" = "Kassenbon scannen";
+
+// MARK: - Errors
+"error.networkUnavailable" = "Keine Internetverbindung. Deine Daten werden synchronisiert, sobald du wieder online bist.";
+"error.cloudKitSyncFailed" = "Synchronisierung fehlgeschlagen. Bitte prüfe deine iCloud-Einstellungen.";
+"error.receiptParsingFailed" = "Der Kassenbon konnte nicht gelesen werden. Bitte versuche es erneut.";
+"error.householdNotFound" = "Haushalt nicht gefunden. Bitte erstelle einen neuen Haushalt.";
+"error.unauthorized" = "Du hast keine Berechtigung für diese Aktion.";
+"error.supabaseFetchFailed" = "Preisdaten konnten nicht geladen werden. Bitte versuche es später erneut.";
+"error.householdFull" = "Der Haushalt hat bereits 10 Mitglieder und ist voll.";
+"error.invalidInviteLink" = "Der Einladungslink ist ungültig oder abgelaufen.";
+"error.alreadyMember" = "Du bist bereits Mitglied dieses Haushalts.";
+
+// MARK: - Settings
+"settings.household" = "Haushalt";
+"settings.notifications" = "Benachrichtigungen";
+"settings.icloud" = "iCloud-Synchronisierung";
+"settings.about" = "Über Wochi";
+"settings.siri" = "Siri-Kurzbefehle";
