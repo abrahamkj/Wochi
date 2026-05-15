@@ -13,7 +13,8 @@ final class BudgetViewModel: ObservableObject {
 
     private let budgetRepository: BudgetRepositoryProtocol
     private let receiptRepository: ReceiptRepositoryProtocol
-    private let household: Household
+    let household: Household
+    let scanUseCase: ScanReceiptUseCase
 
     init(budgetRepository: BudgetRepositoryProtocol,
          receiptRepository: ReceiptRepositoryProtocol,
@@ -21,6 +22,7 @@ final class BudgetViewModel: ObservableObject {
         self.budgetRepository = budgetRepository
         self.receiptRepository = receiptRepository
         self.household = household
+        self.scanUseCase = ScanReceiptUseCase(repository: receiptRepository)
         let now = Calendar.current.dateComponents([.month, .year], from: Date())
         self.selectedMonth = now.month ?? 1
         self.selectedYear = now.year ?? 2025

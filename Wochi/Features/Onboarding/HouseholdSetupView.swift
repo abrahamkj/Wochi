@@ -45,7 +45,7 @@ private final class HouseholdSetupViewModel: ObservableObject {
             showError = true
             return
         }
-        HouseholdShareManager.shared.handleIncomingURL(url)
+        await HouseholdShareManager.shared.handleIncomingURL(url)
         // The share acceptance flow posts a notification; the app state will
         // be updated by the observer set up in WochiApp.
     }

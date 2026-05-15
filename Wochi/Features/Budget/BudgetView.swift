@@ -48,7 +48,7 @@ struct BudgetView: View {
                 }
             }
             .sheet(isPresented: $showScanner) {
-                ReceiptCameraView()
+                ReceiptCameraView(scanUseCase: viewModel.scanUseCase, household: viewModel.household)
             }
             .navigationDestination(isPresented: $showReceipts) {
                 ReceiptHistoryView(viewModel: viewModel)
