@@ -197,47 +197,6 @@ private struct ShoppingListCard: View {
     }
 }
 
-// MARK: - EmptyStateView
-
-struct EmptyStateView: View {
-
-    let symbol: String
-    let title: LocalizedStringKey
-    let subtitle: LocalizedStringKey
-    let actionTitle: LocalizedStringKey
-    let action: () -> Void
-
-    var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: symbol)
-                .font(.system(size: 60))
-                .foregroundStyle(.secondary)
-
-            VStack(spacing: 8) {
-                Text(title)
-                    .font(.title2)
-                    .fontWeight(.semibold)
-
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-            }
-
-            Button(action: action) {
-                Text(actionTitle)
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-            }
-            .buttonStyle(.borderedProminent)
-            .padding(.horizontal, 32)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
 // MARK: - Previews
 
 #Preview("Lists") {
@@ -246,16 +205,6 @@ struct EmptyStateView: View {
         household: Household.sample()
     )
     .modelContainer(WochiDataContainer.preview)
-}
-
-#Preview("Empty") {
-    EmptyStateView(
-        symbol: "cart",
-        title: "Noch keine Listen",
-        subtitle: "Erstelle deine erste Einkaufsliste.",
-        actionTitle: "Neue Liste erstellen",
-        action: {}
-    )
 }
 
 // MARK: - Preview helpers

@@ -237,9 +237,11 @@ private struct ShoppingItemRow: View {
                         .foregroundStyle(.secondary)
                 }
 
-                // Member avatar
-                if let memberID = item.addedByMemberID {
-                    MemberAvatarView(memberID: memberID)
+                // Member avatar (generic icon — full member lookup needs household context)
+                if item.addedByMemberID != nil {
+                    Image(systemName: "person.circle.fill")
+                        .foregroundStyle(.secondary)
+                        .font(.system(size: 18))
                 }
 
                 // Check indicator
@@ -252,36 +254,6 @@ private struct ShoppingItemRow: View {
         }
         .buttonStyle(.plain)
         Divider()
-    }
-}
-
-// MARK: - MemberAvatarView
-
-private struct MemberAvatarView: View {
-
-    let memberID: UUID
-
-    // Deterministic color from the UUID so the avatar is stable.
-    private var color: Color {
-        let colors: [Color] = [.green, .blue, .red, .orange, .purple, .teal]
-        let index = abs(memberID.hashValue) % colors.count
-        return colors[index]
-    }
-
-    private var initials: String {
-        // We only have the UUID here; show a generic icon.
-        "?"
-    }
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(color.opacity(0.25))
-            Text(initials)
-                .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(color)
-        }
-        .frame(width: 22, height: 22)
     }
 }
 

@@ -16,19 +16,19 @@ struct SiriShortcutsView: View {
             symbol: "cart.badge.plus",
             title: "Artikel hinzufügen",
             subtitle: "Füge einen Artikel direkt zu deiner aktiven Einkaufsliste hinzu.",
-            phrase: "„Füge Milch zu Wochi hinzu""
+            phrase: "\u{201E}Füge Milch zu Wochi hinzu\u{201C}"
         ),
         ShortcutInfo(
             symbol: "list.bullet",
             title: "Wochi Liste anzeigen",
             subtitle: "Öffne deine aktuelle Einkaufsliste.",
-            phrase: "„Öffne meine Wochi Liste""
+            phrase: "\u{201E}Öffne meine Wochi Liste\u{201C}"
         ),
         ShortcutInfo(
             symbol: "cabinet",
             title: "Vorräte prüfen",
             subtitle: "Sieh dir deinen aktuellen Vorrat an.",
-            phrase: "„Zeige meine Vorräte in Wochi""
+            phrase: "\u{201E}Zeige meine Vorräte in Wochi\u{201C}"
         ),
     ]
 

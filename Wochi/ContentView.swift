@@ -47,62 +47,6 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Placeholder feature views (stubs until feature files are created)
-
-struct ShoppingListsView: View {
-    var body: some View {
-        NavigationStack {
-            EmptyStateView(
-                symbol: "cart",
-                title: "shopping.empty.title",
-                subtitle: "shopping.empty.subtitle"
-            )
-            .navigationTitle(LocalizedStringKey("tab.shopping"))
-        }
-    }
-}
-
-struct PantryView: View {
-    var body: some View {
-        NavigationStack {
-            EmptyStateView(
-                symbol: "house",
-                title: "pantry.empty.title",
-                subtitle: "pantry.empty.subtitle"
-            )
-            .navigationTitle(LocalizedStringKey("tab.pantry"))
-        }
-    }
-}
-
-struct BudgetView: View {
-    var body: some View {
-        NavigationStack {
-            EmptyStateView(
-                symbol: "chart.bar",
-                title: "budget.empty.title",
-                subtitle: "budget.empty.subtitle"
-            )
-            .navigationTitle(LocalizedStringKey("tab.budget"))
-        }
-    }
-}
-
-struct SettingsView: View {
-    var body: some View {
-        NavigationStack {
-            List {
-                Label("settings.household", systemImage: "house.fill")
-                Label("settings.notifications", systemImage: "bell")
-                Label("settings.icloud", systemImage: "icloud")
-                Label("settings.siri", systemImage: "mic")
-                Label("settings.about", systemImage: "info.circle")
-            }
-            .navigationTitle(LocalizedStringKey("tab.settings"))
-        }
-    }
-}
-
 // MARK: - Preview
 
 #Preview {
