@@ -20,11 +20,9 @@ enum WochiDataContainer {
         if inMemory {
             config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         } else {
-            // Avoid requiring CloudKit entitlements at startup; creating a
-            // ModelContainer with cloudKitDatabase may fail if the app's
-            // entitlements or container configuration aren't present in the
-            // runtime environment (e.g. during local development or tests).
-            // Use a local-on-disk configuration by default.
+            // cloudKitDatabase: .automatic crashes at startup when the CloudKit
+            // container entitlement is not provisioned (e.g. local dev, simulator
+            // without iCloud sign-in). Use a plain local store for now.
             config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         }
 
