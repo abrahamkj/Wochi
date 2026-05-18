@@ -18,7 +18,7 @@ struct WochiApp: App {
 
     private let modelContainer: ModelContainer = {
         do {
-            return try WochiDataContainer.create()
+            return try WochiDataContainer.create() 
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }

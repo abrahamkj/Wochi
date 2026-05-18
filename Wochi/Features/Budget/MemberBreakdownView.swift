@@ -23,8 +23,8 @@ struct MemberBreakdownView: View {
                             .frame(width: 36, height: 36)
                             .overlay {
                                 Text(String(spend.memberName.prefix(1)))
-                                    .font(.subheadline.bold())
-                                    .foregroundStyle(.accentColor)
+                                                    .font(.subheadline.bold())
+                                                    .foregroundColor(.accentColor)
                             }
 
                         VStack(alignment: .leading) {

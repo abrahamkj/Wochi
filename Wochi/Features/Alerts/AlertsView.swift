@@ -54,12 +54,12 @@ private struct AlertCard: View {
                     .font(.headline)
                 Spacer()
                 if !alert.isRead {
-                    Text("Neu")
+                        Text("Neu")
                         .font(.caption.bold())
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
                         .background(Color.accentColor)
-                        .foregroundStyle(.white)
+                        .foregroundColor(.white)
                         .clipShape(Capsule())
                 }
             }
@@ -94,7 +94,7 @@ private struct AlertCard: View {
             } else {
                 Button("Habe ich gekauft") { showRatingPrompt = true }
                     .font(.caption)
-                    .foregroundStyle(.accentColor)
+                    .foregroundColor(.accentColor)
             }
         }
         .padding(.vertical, 8)
@@ -117,7 +117,7 @@ private struct AlertCard: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
             .background(Color.green.opacity(0.15))
-            .foregroundStyle(.green)
+            .foregroundColor(.green)
             .clipShape(Capsule())
     }
 }

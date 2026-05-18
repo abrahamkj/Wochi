@@ -38,18 +38,19 @@ struct SiriShortcutsView: View {
                 Section {
                     Text("Sage einfach den Satz zu Siri, um den Kurzbefehl zu nutzen. Du kannst die Kurzbefehle auch in der Shortcuts-App anpassen.")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundColor(.secondary)
                         .listRowBackground(Color.clear)
                 }
 
-                ForEach(shortcuts) { shortcut in
+                // Disambiguate ForEach overload by providing an explicit id key path
+                ForEach(shortcuts, id: \.id) { (shortcut: ShortcutInfo) in
                     HStack(spacing: 16) {
                         RoundedRectangle(cornerRadius: 10)
                             .fill(Color.accentColor)
                             .frame(width: 44, height: 44)
                             .overlay {
                                 Image(systemName: shortcut.symbol)
-                                    .foregroundStyle(.white)
+                                    .foregroundColor(.white)
                                     .font(.title3)
                             }
 
@@ -58,10 +59,10 @@ struct SiriShortcutsView: View {
                                 .font(.body)
                             Text(shortcut.subtitle)
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundColor(.secondary)
                             Text(shortcut.phrase)
-                                .font(.caption.italic())
-                                .foregroundStyle(.accentColor)
+                                .font(.caption).italic()
+                                .foregroundColor(.accentColor)
                         }
                     }
                     .padding(.vertical, 4)

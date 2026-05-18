@@ -53,7 +53,7 @@ final class BudgetViewModel: ObservableObject {
             async let cur = budgetRepository.fetchBudgetRecord(for: household, month: selectedMonth, year: selectedYear)
             async let prevMonth = previousMonthComponents
             currentRecord = try await cur
-            let (pm, py) = prevMonth
+            let (pm, py) = await prevMonth
             previousRecord = try await budgetRepository.fetchBudgetRecord(for: household, month: pm, year: py)
             receipts = try await receiptRepository.fetchReceipts(for: household, month: selectedMonth, year: selectedYear)
         } catch {

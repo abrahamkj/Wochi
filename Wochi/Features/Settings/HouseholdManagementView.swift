@@ -32,7 +32,7 @@ struct HouseholdManagementView: View {
                                             .padding(.horizontal, 6)
                                             .padding(.vertical, 2)
                                             .background(Color.accentColor.opacity(0.15))
-                                            .foregroundStyle(.accentColor)
+                                            .foregroundColor(.accentColor)
                                             .clipShape(Capsule())
                                     }
                                 }
@@ -43,13 +43,7 @@ struct HouseholdManagementView: View {
                             Spacer()
                         }
                         .swipeActions(edge: .trailing) {
-                            if canManage && !member.isCurrentDevice {
-                                Button(role: .destructive) {
-                                    removeMemberCandidate = member
-                                } label: {
-                                    Label("Entfernen", systemImage: "person.badge.minus")
-                                }
-                            }
+                            swipeActions(for: member)
                         }
                     }
 
@@ -112,6 +106,19 @@ struct HouseholdManagementView: View {
         defer { isGeneratingInvite = false }
         shareURL = try? await HouseholdShareManager.shared.createShareURL(for: household)
         if shareURL != nil { showShareSheet = true }
+    }
+
+    @ViewBuilder
+    private func swipeActions(for member: HouseholdMember) -> some View {
+        if canManage && !member.isCurrentDevice {
+            Button(role: .destructive) {
+                removeMemberCandidate = member
+            } label: {
+                Label("Entfernen", systemImage: "person.badge.minus")
+            }
+        } else {
+            EmptyView()
+        }
     }
 }
 

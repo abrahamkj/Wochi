@@ -44,14 +44,17 @@ final class AlertsViewModel: ObservableObject {
         // thumbsDown → mark brand as .never in household's items
         if !thumbsUp {
             let householdID = household.id
+            // Capture the alert's preferredBrand as a local value so the predicate macro
+            // treats it as a constant value rather than trying to form a KeyPath.
+            let preferred = alert.preferredBrand
             let descriptor = FetchDescriptor<ShoppingItem>(
                 predicate: #Predicate {
                     $0.list?.household?.id == householdID &&
-                    $0.preferredBrand == alert.preferredBrand
+                    $0.preferredBrand == preferred
                 }
             )
             if let items = try? context.fetch(descriptor) {
-                items.forEach { $0.brandTier = thumbsUp ? .preferred : .never }
+                items.forEach { $0.brandTier = .never }
             }
         }
         alert.isDismissed = true

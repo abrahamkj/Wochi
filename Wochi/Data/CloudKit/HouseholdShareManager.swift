@@ -41,23 +41,10 @@ final class HouseholdShareManager {
             )
             operation.isAtomic = true
 
-            let (savedRecords, _) = try await withCheckedThrowingContinuation {
+            let (savedRecords, deletedIDs) = try await withCheckedThrowingContinuation {
                 (continuation: CheckedContinuation<([CKRecord], [CKRecord.ID]), Error>) in
-                operation.modifyRecordsResultBlock = { result in
-                    switch result {
-                    case .success:
-                        break
-                    case .failure(let error):
-                        continuation.resume(throwing: error)
-                    }
-                }
-                operation.perRecordSaveBlock = { _, result in
-                    if case .failure(let error) = result {
-                        continuation.resume(throwing: error)
-                    }
-                }
-                operation.fetchRecordsResultBlock = nil
-                // Use a completion to signal success after all saves.
+                // Use the modifyRecordsResultBlock to get the final result of the operation.
+                // Use the Result-based completion form (match other usages in this file).
                 operation.modifyRecordsResultBlock = { result in
                     switch result {
                     case .success:
@@ -68,7 +55,7 @@ final class HouseholdShareManager {
                 }
                 privateDB.add(operation)
             }
-            _ = savedRecords
+            _ = (savedRecords, deletedIDs)
 
             if let shareURL = share.url {
                 return shareURL
