@@ -16,15 +16,16 @@ enum WochiDataContainer {
             SubstitutionAlert.self,
         ])
 
-        let config: ModelConfiguration
-        if inMemory {
-            config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-        } else {
-            // cloudKitDatabase: .automatic crashes at startup when the CloudKit
-            // container entitlement is not provisioned (e.g. local dev, simulator
-            // without iCloud sign-in). Use a plain local store for now.
-            config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-        }
+        // cloudKitDatabase defaults to .automatic — must be set to .none explicitly
+        // to prevent SwiftData from trying CloudKit even when only local storage
+        // is wanted. CloudKit also requires all model attributes to be optional
+        // and all relationships to be optional with inverses, which our models
+        // don't satisfy yet.
+        let config = ModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: inMemory,
+            cloudKitDatabase: .none
+        )
 
         return try ModelContainer(for: schema, configurations: [config])
     }
