@@ -2,13 +2,13 @@ import Foundation
 
 enum Constants {
     enum App {
-        static let bundleID = "com.yourname.wochi"
-        static let cloudKitContainerID = "iCloud.com.yourname.wochi"
+        static let bundleID = "com.abram.wochi"
+        static let cloudKitContainerID = "iCloud.com.abram.wochi"
         static let urlScheme = "wochi"
     }
 
     enum Budget {
-        static let flyerRefreshTaskID = "com.yourname.wochi.flyer-refresh"
+        static let flyerRefreshTaskID = "com.abram.wochi.flyer-refresh"
         static let dealThresholdPercent = 15.0
         static let maxAlertsPerProductPerWeek = 1
         static let purchaseHistoryWeeks = 4
