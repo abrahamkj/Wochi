@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 final class ReceiptItem {
-    @Attribute(.unique) var id: UUID
+    var id: UUID
     var name: String
     var normalizedName: String?
     var brand: String?

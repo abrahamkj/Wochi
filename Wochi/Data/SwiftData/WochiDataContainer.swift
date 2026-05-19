@@ -16,15 +16,15 @@ enum WochiDataContainer {
             SubstitutionAlert.self,
         ])
 
-        // cloudKitDatabase defaults to .automatic — must be set to .none explicitly
-        // to prevent SwiftData from trying CloudKit even when only local storage
-        // is wanted. CloudKit also requires all model attributes to be optional
-        // and all relationships to be optional with inverses, which our models
-        // don't satisfy yet.
+        // Use CloudKit private database for sync across the current user's devices.
+        // @Attribute(.unique) has been removed from all model IDs because CloudKit
+        // does not support unique constraints — UUID uniqueness is guaranteed by
+        // the generator. Cross-account household sharing requires CKShare (Phase 2).
+        let cloudKit: ModelConfiguration.CloudKitDatabase = inMemory ? .none : .private("iCloud.com.abram.wochi")
         let config = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: inMemory,
-            cloudKitDatabase: .none
+            cloudKitDatabase: cloudKit
         )
 
         return try ModelContainer(for: schema, configurations: [config])

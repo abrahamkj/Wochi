@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 final class HouseholdMember {
-    @Attribute(.unique) var id: UUID
+    var id: UUID
     var appleUserID: String
     var displayName: String
     var email: String?
@@ -33,10 +33,10 @@ enum MemberRole: String, Codable {
 
     var localizedName: String {
         switch self {
-        case .owner: return "Inhaber"
-        case .admin: return "Admin"
-        case .member: return "Mitglied"
-        case .viewer: return "Gast"
+        case .owner:  return String(localized: "role.owner")
+        case .admin:  return String(localized: "role.admin")
+        case .member: return String(localized: "role.member")
+        case .viewer: return String(localized: "role.viewer")
         }
     }
 

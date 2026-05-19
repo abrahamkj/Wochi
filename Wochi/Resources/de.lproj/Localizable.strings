@@ -251,3 +251,9 @@
 "receipt.detail.title" = "Kassenbon";
 "receipt.detail.total" = "Gesamt";
 "receipt.detail.items" = "%d Artikel";
+
+// MARK: - Member Roles
+"role.owner" = "Inhaber";
+"role.admin" = "Admin";
+"role.member" = "Mitglied";
+"role.viewer" = "Gast";

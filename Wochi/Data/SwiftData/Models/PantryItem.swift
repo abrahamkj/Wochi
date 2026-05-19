@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 final class PantryItem {
-    @Attribute(.unique) var id: UUID
+    var id: UUID
     var name: String
     var quantity: Double
     var unit: String?

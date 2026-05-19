@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 final class PreferredStore {
-    @Attribute(.unique) var id: UUID
+    var id: UUID
     var storeChain: StoreChain
     var customName: String?
     var address: String?

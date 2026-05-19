@@ -251,3 +251,9 @@
 "receipt.detail.title" = "Receipt";
 "receipt.detail.total" = "Total";
 "receipt.detail.items" = "%d items";
+
+// MARK: - Member Roles
+"role.owner" = "Owner";
+"role.admin" = "Admin";
+"role.member" = "Member";
+"role.viewer" = "Guest";

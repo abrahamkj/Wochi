@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 final class ShoppingList {
-    @Attribute(.unique) var id: UUID
+    var id: UUID
     var name: String
     var createdAt: Date
     var updatedAt: Date

@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 final class SubstitutionAlert {
-    @Attribute(.unique) var id: UUID
+    var id: UUID
     var productName: String
     var preferredBrand: String?
     var currentStore: StoreChain
