@@ -5,7 +5,7 @@ import CloudKit
 protocol HouseholdRepositoryProtocol {
     func fetchCurrentHousehold() async throws -> Household?
     func fetchHousehold(byID id: UUID) async throws -> Household?
-    func createHousehold(name: String) async throws -> Household
+    func createHousehold(name: String, id: UUID) async throws -> Household  // id defaults to UUID() in implementations
     func inviteMember(to household: Household) async throws -> URL
     func removeMember(_ member: HouseholdMember, from household: Household) async throws
     func updateMemberRole(_ member: HouseholdMember, role: MemberRole) async throws
@@ -35,8 +35,8 @@ final class HouseholdRepository: HouseholdRepositoryProtocol {
         return all.first { $0.id == id }
     }
 
-    func createHousehold(name: String) async throws -> Household {
-        let household = Household(name: name)
+    func createHousehold(name: String, id: UUID = UUID()) async throws -> Household {
+        let household = Household(id: id, name: name)
         context.insert(household)
         try context.save()
         return household

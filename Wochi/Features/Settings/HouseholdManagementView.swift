@@ -122,7 +122,9 @@ struct HouseholdManagementView: View {
         if let url = try? await HouseholdShareManager.shared.createShareURL(for: household) {
             shareURL = url
         } else {
-            shareURL = URL(string: "wochi://invite/\(household.id.uuidString)")
+            let encodedName = household.name
+                .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+            shareURL = URL(string: "wochi://invite/\(household.id.uuidString)?name=\(encodedName)")
         }
         showShareSheet = true
     }

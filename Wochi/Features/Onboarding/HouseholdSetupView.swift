@@ -23,7 +23,8 @@ private final class HouseholdSetupViewModel: ObservableObject {
         defer { isLoading = false }
         do {
             let household = try await repository.createHousehold(
-                name: householdName.trimmingCharacters(in: .whitespaces)
+                name: householdName.trimmingCharacters(in: .whitespaces),
+                id: UUID()
             )
             if let member = appState.currentMember {
                 household.members.append(member)
@@ -47,10 +48,15 @@ private final class HouseholdSetupViewModel: ObservableObject {
             return
         }
 
-        // Parse household UUID from wochi://invite/<uuid> or wochi://invite?household=<uuid>
+        // Parse UUID and optional name from:
+        //   wochi://invite/<uuid>?name=<encoded>
+        //   wochi://invite/<uuid>
+        //   wochi://invite?household=<uuid>&name=<encoded>
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        let queryItems = components?.queryItems ?? []
+
         let uuidString: String?
-        if let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems,
-           let item = items.first(where: { $0.name == "household" }) {
+        if let item = queryItems.first(where: { $0.name == "household" }) {
             uuidString = item.value
         } else {
             let last = url.lastPathComponent
@@ -63,17 +69,26 @@ private final class HouseholdSetupViewModel: ObservableObject {
             return
         }
 
+        let householdName = queryItems.first(where: { $0.name == "name" })?.value ?? "Shared Household"
+
         isLoading = true
         defer { isLoading = false }
 
         do {
-            if let household = try await repository.fetchHousehold(byID: householdID) {
-                UserDefaults.standard.set(household.id.uuidString, forKey: Constants.UserDefaults.householdID)
-                appState.currentHousehold = household
+            // If the household already exists locally (same device / future CloudKit sync), use it.
+            // Otherwise create a local record with the shared UUID so the user can start using the app.
+            let household: Household
+            if let existing = try await repository.fetchHousehold(byID: householdID) {
+                household = existing
             } else {
-                errorMessage = WochiError.householdNotFound.localizedDescription
-                showError = true
+                household = try await repository.createHousehold(name: householdName, id: householdID)
+                if let member = appState.currentMember {
+                    household.members.append(member)
+                    member.household = household
+                }
             }
+            UserDefaults.standard.set(household.id.uuidString, forKey: Constants.UserDefaults.householdID)
+            appState.currentHousehold = household
         } catch {
             errorMessage = error.localizedDescription
             showError = true
@@ -311,7 +326,7 @@ struct HouseholdSetupView: View {
 private final class _PlaceholderHouseholdRepository: HouseholdRepositoryProtocol {
     func fetchCurrentHousehold() async throws -> Household? { nil }
     func fetchHousehold(byID id: UUID) async throws -> Household? { nil }
-    func createHousehold(name: String) async throws -> Household { Household(name: name) }
+    func createHousehold(name: String, id: UUID) async throws -> Household { Household(id: id, name: name) }
     func inviteMember(to household: Household) async throws -> URL {
         guard let url = URL(string: "wochi://invite/\(household.id.uuidString)") else {
             throw WochiError.invalidInviteLink

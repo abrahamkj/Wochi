@@ -25,8 +25,8 @@ final class Household {
     @Relationship(deleteRule: .cascade)
     var preferredStores: [PreferredStore]
 
-    init(name: String) {
-        self.id = UUID()
+    init(id: UUID = UUID(), name: String) {
+        self.id = id
         self.name = name
         self.createdAt = Date()
         self.updatedAt = Date()
