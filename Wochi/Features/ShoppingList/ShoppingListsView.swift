@@ -232,7 +232,7 @@ private final class PreviewShoppingListRepository: ShoppingListRepositoryProtoco
     }
 
     func deleteItem(_ item: ShoppingItem) async throws {
-        item.list?.items.removeAll { $0.id == item.id }
+        item.list?.items = item.list?.items?.filter { $0.id != item.id }
     }
 
     func archiveList(_ list: ShoppingList) async throws {
