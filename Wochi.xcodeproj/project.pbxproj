@@ -107,7 +107,8 @@
 		17331D838EDE5F73A6F33697 /* ReceiptDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptDetailView.swift; sourceTree = "<group>"; };
 		264EC1FDBE41FBD303E5963A /* AlertsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsViewModel.swift; sourceTree = "<group>"; };
 		2868EC7834A81A3CA16FFA14 /* HouseholdRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdRepository.swift; sourceTree = "<group>"; };
-		2968CE16EEB08726F4639ED5 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
+		ABABABABABABABABABABABABAB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CDCDCDCDCDCDCDCDCDCDCDCD /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		2E4778804C288734063E103E /* ShoppingListsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingListsView.swift; sourceTree = "<group>"; };
 		3142502E053CB5A036CE084E /* PreferredStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferredStore.swift; sourceTree = "<group>"; };
 		31EFCFE47021BF8A4F607086 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -177,6 +178,18 @@
 		FD476B9996E295EFAFB5E8C2 /* Date+German.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+German.swift"; sourceTree = "<group>"; };
 		FF14B60048B7DCCD2F48739A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXVariantGroup section */
+		2968CE16EEB08726F4639ED5 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CDCDCDCDCDCDCDCDCDCDCDCD /* de */,
+				ABABABABABABABABABABABABAB /* en */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		D65348C4D035D17F037A8796 /* Frameworks */ = {

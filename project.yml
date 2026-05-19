@@ -93,7 +93,8 @@ targets:
           - "**/.DS_Store"
 
     resources:
-      - path: Wochi/Resources/Localizable.strings
+      - path: Wochi/Resources/de.lproj
+      - path: Wochi/Resources/en.lproj
       - path: Wochi/Resources/Assets.xcassets
 
     dependencies:

@@ -104,8 +104,12 @@ struct HouseholdManagementView: View {
     private func generateInviteLink() async {
         isGeneratingInvite = true
         defer { isGeneratingInvite = false }
-        shareURL = try? await HouseholdShareManager.shared.createShareURL(for: household)
-        if shareURL != nil { showShareSheet = true }
+        if let url = try? await HouseholdShareManager.shared.createShareURL(for: household) {
+            shareURL = url
+        } else {
+            shareURL = URL(string: "wochi://invite/\(household.id.uuidString)")
+        }
+        showShareSheet = true
     }
 
     @ViewBuilder

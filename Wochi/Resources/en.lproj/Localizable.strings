@@ -1,0 +1,68 @@
+/* Wochi – English (en) Localizable.strings */
+
+// MARK: - Tabs
+"tab.shopping" = "Shopping";
+"tab.pantry" = "Pantry";
+"tab.budget" = "Budget";
+"tab.settings" = "Settings";
+
+// MARK: - Onboarding Slides
+"onboarding.slide1.title" = "Your household, organized";
+"onboarding.slide1.subtitle" = "Share shopping lists with all household members in real time.";
+"onboarding.slide2.title" = "Never forget again";
+"onboarding.slide2.subtitle" = "Keep track of your pantry and get notifications before items expire.";
+"onboarding.slide3.title" = "Shop smarter";
+"onboarding.slide3.subtitle" = "Compare prices and save money with weekly deals.";
+
+// MARK: - Common Buttons
+"button.continue" = "Continue";
+"button.skip" = "Skip";
+"button.save" = "Save";
+"button.cancel" = "Cancel";
+"button.delete" = "Delete";
+"button.confirm" = "Confirm";
+"button.add" = "Add";
+"button.add.more" = "Add & another";
+
+// MARK: - Household
+"household.create.title" = "Create new household";
+"household.join.title" = "Accept invitation";
+"household.name.placeholder" = "Your household name";
+
+// MARK: - Shopping
+"shopping.empty.title" = "No items yet";
+"shopping.empty.subtitle" = "Add your first item";
+"shopping.list.add" = "New list";
+"shopping.item.add" = "Add item";
+"shopping.checked.clear" = "Clear all completed";
+
+// MARK: - Pantry
+"pantry.empty.title" = "Your pantry is empty";
+"pantry.empty.subtitle" = "Add your first item";
+"pantry.filter.expiring" = "Expiring";
+"pantry.filter.low" = "Running low";
+"pantry.quickaction.used" = "Used up";
+
+// MARK: - Budget
+"budget.empty.title" = "No receipts yet";
+"budget.empty.subtitle" = "Scan your first receipt";
+"budget.receipts.count" = "Based on %d receipts";
+"budget.scan" = "Scan receipt";
+
+// MARK: - Errors
+"error.networkUnavailable" = "No internet connection. Your data will sync once you are back online.";
+"error.cloudKitSyncFailed" = "Sync failed. Please check your iCloud settings.";
+"error.receiptParsingFailed" = "Could not read the receipt. Please try again.";
+"error.householdNotFound" = "Household not found. Please create a new household.";
+"error.unauthorized" = "You do not have permission for this action.";
+"error.supabaseFetchFailed" = "Could not load price data. Please try again later.";
+"error.householdFull" = "The household already has 10 members and is full.";
+"error.invalidInviteLink" = "The invitation link is invalid or has expired.";
+"error.alreadyMember" = "You are already a member of this household.";
+
+// MARK: - Settings
+"settings.household" = "Household";
+"settings.notifications" = "Notifications";
+"settings.icloud" = "iCloud Sync";
+"settings.about" = "About Wochi";
+"settings.siri" = "Siri Shortcuts";
