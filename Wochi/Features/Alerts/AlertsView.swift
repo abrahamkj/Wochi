@@ -13,8 +13,8 @@ struct AlertsView: View {
                 if viewModel.alerts.isEmpty {
                     EmptyStateView(
                         symbol: "tag.slash",
-                        title: "Keine Angebote",
-                        subtitle: "Keine aktuellen Angebote für deine Produkte."
+                        title: "alerts.empty.title",
+                        subtitle: "alerts.empty.subtitle"
                     )
                 } else {
                     List {
@@ -26,7 +26,7 @@ struct AlertsView: View {
                                 Button {
                                     Task { await viewModel.dismiss(alert) }
                                 } label: {
-                                    Label("Ignorieren", systemImage: "xmark.circle")
+                                    Label("alerts.ignore", systemImage: "xmark.circle")
                                 }
                                 .tint(.secondary)
                             }
@@ -36,7 +36,7 @@ struct AlertsView: View {
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle("Angebote")
+            .navigationTitle("alerts.nav.title")
             .task { await viewModel.load() }
         }
     }
@@ -54,7 +54,7 @@ private struct AlertCard: View {
                     .font(.headline)
                 Spacer()
                 if !alert.isRead {
-                        Text("Neu")
+                    Text("alerts.new.badge")
                         .font(.caption.bold())
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
@@ -76,23 +76,23 @@ private struct AlertCard: View {
             HStack {
                 Image(systemName: "calendar")
                     .font(.caption)
-                Text("bis \(alert.validUntil.germanShortDate)")
+                Text(verbatim: String(format: String(localized: "alerts.valid.until"), alert.validUntil.germanShortDate))
                     .font(.caption)
             }
             .foregroundStyle(.secondary)
 
             if showRatingPrompt {
                 HStack(spacing: 16) {
-                    Text("Hast du es gekauft?")
+                    Text("alerts.purchase.question")
                         .font(.subheadline)
                     Spacer()
-                    Button("👍") { onRate(true); showRatingPrompt = false }
+                    Button("alerts.purchased.yes") { onRate(true); showRatingPrompt = false }
                         .buttonStyle(.bordered)
-                    Button("👎") { onRate(false); showRatingPrompt = false }
+                    Button("alerts.purchased.no") { onRate(false); showRatingPrompt = false }
                         .buttonStyle(.bordered)
                 }
             } else {
-                Button("Habe ich gekauft") { showRatingPrompt = true }
+                Button("alerts.purchase.question") { showRatingPrompt = true }
                     .font(.caption)
                     .foregroundColor(.accentColor)
             }

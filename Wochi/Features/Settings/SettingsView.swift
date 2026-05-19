@@ -4,29 +4,36 @@ struct SettingsView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var cloudKit: CloudKitManager = .shared
     @State private var showHouseholdManagement = false
+    @State private var showHouseholdSetup = false
     @State private var showSiriShortcuts = false
 
     var body: some View {
         NavigationStack {
             List {
                 Section("settings.section.household") {
-                    Button {
-                        showHouseholdManagement = true
-                    } label: {
-                        HStack {
-                            Label("settings.household.manage", systemImage: "house.fill")
-                            Spacer()
-                            if let h = appState.currentHousehold {
-                                Text(h.name)
+                    if appState.currentHousehold != nil {
+                        Button {
+                            showHouseholdManagement = true
+                        } label: {
+                            HStack {
+                                Label("settings.household.manage", systemImage: "house.fill")
+                                Spacer()
+                                Text(appState.currentHousehold!.name)
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(.secondary)
+                                    .font(.caption)
                             }
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(.secondary)
-                                .font(.caption)
+                        }
+                        .foregroundStyle(.primary)
+                    } else {
+                        Button {
+                            showHouseholdSetup = true
+                        } label: {
+                            Label("household.create.title", systemImage: "plus.circle")
                         }
                     }
-                    .foregroundStyle(.primary)
                 }
 
                 Section("settings.section.icloud") {
@@ -83,6 +90,9 @@ struct SettingsView: View {
                 if let h = appState.currentHousehold {
                     HouseholdManagementView(household: h)
                 }
+            }
+            .fullScreenCover(isPresented: $showHouseholdSetup) {
+                HouseholdSetupView(showOnboarding: $showHouseholdSetup)
             }
             .sheet(isPresented: $showSiriShortcuts) {
                 SiriShortcutsView()

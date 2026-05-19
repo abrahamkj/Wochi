@@ -36,84 +36,83 @@ struct EditPantryItemView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Artikel") {
-                    TextField("Name", text: $name)
+                Section("pantry.item.section.article") {
+                    TextField("pantry.item.edit.name", text: $name)
                     HStack {
-                        Text("Menge")
+                        Text("pantry.item.edit.quantity")
                         Spacer()
                         Stepper("\(quantity.formatted(.number.precision(.fractionLength(0...1))))", value: $quantity, in: 0...999, step: 1)
                     }
-                    Picker("Einheit", selection: $unit) {
+                    Picker("pantry.item.edit.unit", selection: $unit) {
                         Text("–").tag("")
                         ForEach(units, id: \.self) { Text($0).tag($0) }
                     }
-                    Picker("Kategorie", selection: $category) {
+                    Picker("pantry.item.edit.category", selection: $category) {
                         ForEach(ItemCategory.allCases, id: \.self) { cat in
                             Label(cat.rawValue, systemImage: cat.sfSymbol).tag(cat)
                         }
                     }
                 }
 
-                Section("Details") {
-                    TextField("Marke (optional)", text: $brand)
-                    Toggle("Ablaufdatum", isOn: $hasExpiry)
+                Section("pantry.item.section.details") {
+                    TextField("pantry.item.edit.brand", text: $brand)
+                    Toggle("pantry.item.edit.expiry.toggle", isOn: $hasExpiry)
                     if hasExpiry {
-                        DatePicker("Datum", selection: $expiryDate, displayedComponents: .date)
-                            .environment(\.locale, Locale(identifier: "de_DE"))
+                        DatePicker("pantry.item.edit.expiry.date", selection: $expiryDate, displayedComponents: .date)
                     }
                     HStack {
-                        Text("Mindestbestand")
+                        Text("pantry.item.edit.min_stock")
                         Spacer()
                         Stepper("\(lowStockThreshold.formatted(.number.precision(.fractionLength(0...1))))",
                                 value: $lowStockThreshold, in: 0...99, step: 1)
                     }
-                    TextField("Notiz", text: $notes)
+                    TextField("pantry.item.edit.notes", text: $notes)
                 }
 
                 Section {
                     Button(role: .destructive) { showUsedUpSheet = true } label: {
-                        Label("Aufgebraucht", systemImage: "trash.slash")
+                        Label("pantry.item.used_up.button", systemImage: "trash.slash")
                     }
                 }
 
                 Section {
-                    Text("Zuletzt geändert: \(item.lastUpdatedAt.germanDateString)")
+                    Text(verbatim: String(format: String(localized: "pantry.item.edit.last_updated"), item.lastUpdatedAt.germanDateString))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
 
                 Section {
-                    Button("Löschen", role: .destructive) { showDeleteConfirmation = true }
+                    Button("button.delete", role: .destructive) { showDeleteConfirmation = true }
                 }
             }
-            .navigationTitle("Artikel bearbeiten")
+            .navigationTitle("pantry.item.edit.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") { dismiss() }
+                    Button("button.cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Speichern") { save() }
+                    Button("button.save") { save() }
                         .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
-            .confirmationDialog("Artikel löschen?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
-                Button("Löschen", role: .destructive) {
+            .confirmationDialog("pantry.item.delete.confirm", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+                Button("button.delete", role: .destructive) {
                     Task { await viewModel.deleteItem(item) }
                     dismiss()
                 }
-                Button("Abbrechen", role: .cancel) {}
+                Button("button.cancel", role: .cancel) {}
             }
-            .confirmationDialog("Aufgebraucht — zur Liste hinzufügen?", isPresented: $showUsedUpSheet, titleVisibility: .visible) {
-                Button("Zur Einkaufsliste hinzufügen") {
+            .confirmationDialog("pantry.item.used_up.confirm", isPresented: $showUsedUpSheet, titleVisibility: .visible) {
+                Button("pantry.item.used_up.add_to_list") {
                     Task { await viewModel.markAsUsedUp(item, addToList: nil) }
                     dismiss()
                 }
-                Button("Nur als aufgebraucht markieren") {
+                Button("pantry.item.used_up.mark_only") {
                     Task { await viewModel.markAsUsedUp(item, addToList: nil) }
                     dismiss()
                 }
-                Button("Abbrechen", role: .cancel) {}
+                Button("button.cancel", role: .cancel) {}
             }
         }
     }

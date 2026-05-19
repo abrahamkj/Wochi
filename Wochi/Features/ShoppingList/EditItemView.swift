@@ -34,62 +34,62 @@ struct EditItemView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Artikel") {
-                    TextField("Name", text: $name)
+                Section("shopping.item.edit.title") {
+                    TextField("shopping.item.edit.name", text: $name)
                     HStack {
-                        Text("Menge")
+                        Text("shopping.item.edit.quantity")
                         Spacer()
                         Stepper("\(quantity.formatted(.number.precision(.fractionLength(0...1))))",
                                 value: $quantity, in: 0.5...99, step: 0.5)
                     }
-                    Picker("Einheit", selection: $unit) {
+                    Picker("shopping.item.edit.unit", selection: $unit) {
                         Text("–").tag("")
                         ForEach(units, id: \.self) { Text($0).tag($0) }
                     }
                 }
 
-                Section("Marke") {
-                    TextField("Marke (optional)", text: $brand)
-                    Picker("Markenpräferenz", selection: $brandTier) {
-                        Label("⭐ Bevorzugt", systemImage: "star.fill").tag(BrandPreference.preferred)
-                        Label("✓ Akzeptabel", systemImage: "checkmark").tag(BrandPreference.acceptable)
-                        Label("✗ Nie", systemImage: "xmark").tag(BrandPreference.never)
+                Section("shopping.item.edit.brand.section") {
+                    TextField("shopping.item.edit.brand", text: $brand)
+                    Picker("shopping.item.edit.brand", selection: $brandTier) {
+                        Label("shopping.item.edit.brand.preferred", systemImage: "star.fill").tag(BrandPreference.preferred)
+                        Label("shopping.item.edit.brand.acceptable", systemImage: "checkmark").tag(BrandPreference.acceptable)
+                        Label("shopping.item.edit.brand.never", systemImage: "xmark").tag(BrandPreference.never)
                     }
                     .pickerStyle(.segmented)
                 }
 
-                Section("Kategorie & Details") {
-                    Picker("Kategorie", selection: $category) {
+                Section("shopping.item.edit.category.section") {
+                    Picker("shopping.item.edit.category", selection: $category) {
                         ForEach(ItemCategory.allCases, id: \.self) { cat in
                             Label(cat.rawValue, systemImage: cat.sfSymbol).tag(cat)
                         }
                     }
-                    TextField("Notiz", text: $note)
-                    TextField("Geschätzter Preis (€)", text: $estimatedPrice)
+                    TextField("shopping.item.edit.note", text: $note)
+                    TextField("shopping.item.edit.price", text: $estimatedPrice)
                         .keyboardType(.decimalPad)
                 }
 
                 Section {
-                    Button("Löschen", role: .destructive) { showDeleteConfirmation = true }
+                    Button("button.delete", role: .destructive) { showDeleteConfirmation = true }
                 }
             }
-            .navigationTitle("Artikel bearbeiten")
+            .navigationTitle("shopping.item.edit.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") { dismiss() }
+                    Button("button.cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Speichern") { save() }
+                    Button("button.save") { save() }
                         .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
-            .confirmationDialog("Artikel löschen?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
-                Button("Löschen", role: .destructive) {
+            .confirmationDialog("shopping.item.delete.confirm", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+                Button("button.delete", role: .destructive) {
                     Task { await viewModel.deleteItem(item) }
                     dismiss()
                 }
-                Button("Abbrechen", role: .cancel) {}
+                Button("button.cancel", role: .cancel) {}
             }
         }
     }

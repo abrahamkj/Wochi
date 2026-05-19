@@ -51,14 +51,14 @@ struct ShoppingListDetailView: View {
             EditItemView(item: item, viewModel: viewModel)
         }
         .confirmationDialog(
-            LocalizedStringKey("Alle erledigten Artikel löschen?"),
+            "shopping.item.delete.confirm",
             isPresented: $showClearConfirmation,
             titleVisibility: .visible
         ) {
-            Button(LocalizedStringKey("Löschen"), role: .destructive) {
+            Button("button.delete", role: .destructive) {
                 Task { await viewModel.clearCheckedItems(from: list) }
             }
-            Button(LocalizedStringKey("Abbrechen"), role: .cancel) {}
+            Button("button.cancel", role: .cancel) {}
         }
     }
 
@@ -83,7 +83,7 @@ struct ShoppingListDetailView: View {
             } header: {
                 HStack(spacing: 6) {
                     Image(systemName: group.category.sfSymbol)
-                    Text(LocalizedStringKey(group.category.rawValue))
+                    Text(group.category.rawValue)
                         .font(.subheadline)
                         .fontWeight(.semibold)
                 }
@@ -106,7 +106,7 @@ struct ShoppingListDetailView: View {
                     .padding(.horizontal)
             }
         } label: {
-            Text(LocalizedStringKey("Erledigt (\(list.checkedItems.count))"))
+            Text(verbatim: String(format: String(localized: "shopping.detail.checked.section"), list.checkedItems.count))
                 .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
@@ -132,7 +132,7 @@ struct ShoppingListDetailView: View {
             Button(role: .destructive) {
                 Task { await viewModel.deleteItem(item) }
             } label: {
-                Label(LocalizedStringKey("Löschen"), systemImage: "trash")
+                Label("button.delete", systemImage: "trash")
             }
         }
         .onLongPressGesture {
@@ -147,7 +147,7 @@ struct ShoppingListDetailView: View {
             showClearConfirmation = true
         } label: {
             Label(
-                LocalizedStringKey("Alle erledigten löschen"),
+                "shopping.checked.clear",
                 systemImage: "trash"
             )
             .foregroundStyle(.red)
@@ -160,7 +160,7 @@ struct ShoppingListDetailView: View {
     private var offlineBanner: some View {
         HStack(spacing: 8) {
             Image(systemName: "wifi.slash")
-            Text(LocalizedStringKey("Offline – Änderungen werden synchronisiert, sobald du wieder online bist."))
+            Text("shopping.detail.offline")
                 .font(.caption)
         }
         .foregroundStyle(.white)
@@ -182,7 +182,7 @@ struct ShoppingListDetailView: View {
             } label: {
                 Image(systemName: viewModel.groupByCategory ? "list.bullet.indent" : "list.bullet")
             }
-            .accessibilityLabel(LocalizedStringKey("Gruppierung umschalten"))
+            .accessibilityLabel("shopping.detail.share")
         }
         ToolbarItem(placement: .navigationBarTrailing) {
             Button {
@@ -190,7 +190,7 @@ struct ShoppingListDetailView: View {
             } label: {
                 Image(systemName: "plus")
             }
-            .accessibilityLabel(LocalizedStringKey("Artikel hinzufügen"))
+            .accessibilityLabel("shopping.item.add")
         }
     }
 }

@@ -27,19 +27,19 @@ struct ShoppingListsView: View {
                     listContent
                 }
             }
-            .navigationTitle(LocalizedStringKey("Einkaufslisten"))
+            .navigationTitle("shopping.nav.title")
             .toolbar { toolbarContent }
             .sheet(isPresented: $isShowingNewListSheet) {
                 newListSheet
             }
             .alert(
-                LocalizedStringKey("Fehler"),
+                "error.generic",
                 isPresented: Binding(
                     get: { viewModel.error != nil },
                     set: { if !$0 { viewModel.error = nil } }
                 )
             ) {
-                Button(LocalizedStringKey("OK"), role: .cancel) {
+                Button("button.cancel", role: .cancel) {
                     viewModel.error = nil
                 }
             } message: {
@@ -65,7 +65,7 @@ struct ShoppingListsView: View {
                         Button {
                             Task { await viewModel.archiveList(list) }
                         } label: {
-                            Label(LocalizedStringKey("Archivieren"), systemImage: "archivebox")
+                            Label("shopping.list.archive", systemImage: "archivebox")
                         }
                         .tint(.orange)
                     }
@@ -73,7 +73,7 @@ struct ShoppingListsView: View {
                         Button(role: .destructive) {
                             Task { await viewModel.deleteList(list) }
                         } label: {
-                            Label(LocalizedStringKey("Löschen"), systemImage: "trash")
+                            Label("button.delete", systemImage: "trash")
                         }
                     }
                 }
@@ -88,9 +88,9 @@ struct ShoppingListsView: View {
     private var emptyState: some View {
         EmptyStateView(
             symbol: "cart",
-            title: LocalizedStringKey("Noch keine Listen"),
-            subtitle: LocalizedStringKey("Erstelle deine erste Einkaufsliste und halte deinen Haushalt organisiert."),
-            actionTitle: LocalizedStringKey("Neue Liste erstellen"),
+            title: "shopping.list.empty.title",
+            subtitle: "shopping.list.empty.subtitle",
+            actionTitle: "shopping.list.empty.action",
             action: { isShowingNewListSheet = true }
         )
     }
@@ -103,7 +103,7 @@ struct ShoppingListsView: View {
             } label: {
                 Image(systemName: "plus")
             }
-            .accessibilityLabel(LocalizedStringKey("Neue Liste"))
+            .accessibilityLabel("shopping.list.new")
         }
     }
 
@@ -111,21 +111,21 @@ struct ShoppingListsView: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField(LocalizedStringKey("Listenname"), text: $newListName)
+                    TextField("shopping.list.new.name", text: $newListName)
                         .autocorrectionDisabled(false)
                 }
             }
-            .navigationTitle(LocalizedStringKey("Neue Liste"))
+            .navigationTitle("shopping.list.new")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(LocalizedStringKey("Abbrechen")) {
+                    Button("button.cancel") {
                         newListName = ""
                         isShowingNewListSheet = false
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(LocalizedStringKey("Erstellen")) {
+                    Button("shopping.list.new.create") {
                         let name = newListName
                         newListName = ""
                         isShowingNewListSheet = false
@@ -170,7 +170,7 @@ private struct ShoppingListCard: View {
 
             HStack(spacing: 16) {
                 Label {
-                    Text("\(list.pendingItems.count) \(list.pendingItems.count == 1 ? "Artikel" : "Artikel")")
+                    Text(verbatim: String(format: String(localized: "shopping.item.count"), list.pendingItems.count))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 } icon: {

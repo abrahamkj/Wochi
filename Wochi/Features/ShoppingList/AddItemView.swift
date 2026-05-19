@@ -49,7 +49,7 @@ struct AddItemView: View {
                 quantitySection
                 optionalSection
             }
-            .navigationTitle(LocalizedStringKey("Artikel hinzufügen"))
+            .navigationTitle("shopping.item.add")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
         }
@@ -62,7 +62,7 @@ struct AddItemView: View {
     private var nameSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 0) {
-                TextField(LocalizedStringKey("Artikelname"), text: $name)
+                TextField("shopping.item.edit.name", text: $name)
                     .autocorrectionDisabled(false)
                     .onChange(of: name) { _, newValue in
                         showSuggestions = !newValue.isEmpty && !filteredSuggestions.isEmpty
@@ -93,7 +93,7 @@ struct AddItemView: View {
                 }
             }
         } header: {
-            Text(LocalizedStringKey("Name"))
+            Text("shopping.item.edit.name")
         }
     }
 
@@ -105,7 +105,7 @@ struct AddItemView: View {
                 step: 0.5
             ) {
                 HStack {
-                    Text(LocalizedStringKey("Menge"))
+                    Text("shopping.item.edit.quantity")
                     Spacer()
                     Text(quantity.formatted())
                         .foregroundStyle(.secondary)
@@ -113,23 +113,23 @@ struct AddItemView: View {
                 }
             }
 
-            Picker(LocalizedStringKey("Einheit"), selection: $selectedUnit) {
+            Picker("shopping.item.edit.unit", selection: $selectedUnit) {
                 ForEach(units, id: \.self) { unit in
                     Text(unit).tag(unit)
                 }
             }
         } header: {
-            Text(LocalizedStringKey("Menge & Einheit"))
+            Text("shopping.item.edit.quantity")
         }
     }
 
     private var optionalSection: some View {
         Section {
-            TextField(LocalizedStringKey("Marke (optional)"), text: $brand)
-            TextField(LocalizedStringKey("Notiz (optional)"), text: $note, axis: .vertical)
+            TextField("shopping.item.edit.brand", text: $brand)
+            TextField("shopping.item.edit.note", text: $note, axis: .vertical)
                 .lineLimit(2...4)
         } header: {
-            Text(LocalizedStringKey("Optional"))
+            Text("shopping.item.edit.brand.section")
         }
     }
 
@@ -138,26 +138,26 @@ struct AddItemView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
-            Button(LocalizedStringKey("Abbrechen")) {
+            Button("button.cancel") {
                 dismiss()
             }
         }
 
         ToolbarItem(placement: .confirmationAction) {
             Menu {
-                Button(LocalizedStringKey("Hinzufügen & weiteres")) {
+                Button("button.add.more") {
                     addItem()
                     resetForm()
                 }
                 .disabled(!isNameValid)
 
-                Button(LocalizedStringKey("Hinzufügen")) {
+                Button("button.add") {
                     addItem()
                     dismiss()
                 }
                 .disabled(!isNameValid)
             } label: {
-                Text(LocalizedStringKey("Hinzufügen"))
+                Text("button.add")
                     .fontWeight(.semibold)
             }
             .disabled(!isNameValid)

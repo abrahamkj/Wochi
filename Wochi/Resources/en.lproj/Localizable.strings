@@ -109,3 +109,81 @@
 // MARK: - Sign In
 "signin.error.processing" = "The sign-in could not be processed.";
 "signin.default_name" = "Wochi User";
+
+// MARK: - Errors (additional)
+"error.generic" = "Error";
+
+// MARK: - Shopping (additional)
+"shopping.nav.title" = "Shopping Lists";
+"shopping.list.archive" = "Archive";
+"shopping.list.new" = "New List";
+"shopping.list.new.name" = "List name";
+"shopping.list.new.create" = "Create";
+"shopping.list.empty.title" = "No lists yet";
+"shopping.list.empty.subtitle" = "Create your first shopping list";
+"shopping.list.empty.action" = "Create new list";
+"shopping.item.count" = "%d items";
+"shopping.item.edit.title" = "Edit Item";
+"shopping.item.edit.name" = "Name";
+"shopping.item.edit.quantity" = "Quantity";
+"shopping.item.edit.unit" = "Unit";
+"shopping.item.edit.brand" = "Brand";
+"shopping.item.edit.brand.section" = "Brand & Note";
+"shopping.item.edit.brand.preferred" = "Preferred";
+"shopping.item.edit.brand.acceptable" = "Acceptable";
+"shopping.item.edit.brand.never" = "Never";
+"shopping.item.edit.category.section" = "Category & Details";
+"shopping.item.edit.category" = "Category";
+"shopping.item.edit.note" = "Note";
+"shopping.item.edit.price" = "Estimated price (€)";
+"shopping.item.delete.confirm" = "Delete item?";
+"shopping.detail.checked.section" = "Done (%d)";
+"shopping.detail.offline" = "Offline – changes will sync once you are back online";
+"shopping.detail.share" = "Share";
+
+// MARK: - Pantry (additional)
+"pantry.nav.title" = "Pantry";
+"pantry.search" = "Search items";
+"pantry.item.add.title" = "Add Item";
+"pantry.item.edit.title" = "Edit Item";
+"pantry.item.edit.name" = "Name";
+"pantry.item.edit.quantity" = "Quantity";
+"pantry.item.edit.unit" = "Unit";
+"pantry.item.edit.category" = "Category";
+"pantry.item.edit.brand" = "Brand (optional)";
+"pantry.item.edit.expiry.toggle" = "Expiry date";
+"pantry.item.edit.expiry.date" = "Date";
+"pantry.item.edit.min_stock" = "Minimum stock";
+"pantry.item.edit.notes" = "Note";
+"pantry.item.edit.last_updated" = "Last updated: %@";
+"pantry.item.used_up.button" = "Used up";
+"pantry.item.used_up.confirm" = "Used up — add to list?";
+"pantry.item.used_up.add_to_list" = "Add to shopping list";
+"pantry.item.used_up.mark_only" = "Mark as used up only";
+"pantry.item.delete.confirm" = "Delete item?";
+"pantry.expiry.expired" = "Expired";
+"pantry.expiry.today" = "Today";
+"pantry.expiry.days" = "%dd left";
+"pantry.item.section.article" = "Item";
+"pantry.item.section.details" = "Details";
+"pantry.empty.first_action" = "Add first item";
+
+// MARK: - Budget (additional)
+"budget.nav.title" = "View";
+"budget.breakdown.stores" = "Stores";
+"budget.breakdown.categories" = "Categories";
+"budget.breakdown.members" = "Members";
+"budget.all.receipts" = "All receipts";
+"budget.change" = "%@ %% vs last month";
+"budget.scan.cta" = "Scan receipt";
+
+// MARK: - Alerts
+"alerts.nav.title" = "Deals";
+"alerts.empty.title" = "No deals";
+"alerts.empty.subtitle" = "No current deals for your products.";
+"alerts.ignore" = "Ignore";
+"alerts.new.badge" = "New";
+"alerts.purchase.question" = "Did you buy it?";
+"alerts.purchased.yes" = "👍";
+"alerts.purchased.no" = "👎";
+"alerts.valid.until" = "until %@";

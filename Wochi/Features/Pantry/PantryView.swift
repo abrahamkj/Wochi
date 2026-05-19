@@ -17,7 +17,7 @@ struct PantryView: View {
                         symbol: "cabinet",
                         title: "pantry.empty.title",
                         subtitle: "pantry.empty.subtitle",
-                        actionTitle: "Ersten Artikel hinzufügen"
+                        actionTitle: "pantry.empty.first_action"
                     ) {
                         showAddItem = true
                     }
@@ -25,8 +25,8 @@ struct PantryView: View {
                     pantryList
                 }
             }
-            .navigationTitle(LocalizedStringKey("tab.pantry"))
-            .searchable(text: $viewModel.searchText, prompt: "Artikel suchen")
+            .navigationTitle("tab.pantry")
+            .searchable(text: $viewModel.searchText, prompt: "pantry.search")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button { showAddItem = true } label: {
@@ -41,8 +41,8 @@ struct PantryView: View {
                 EditPantryItemView(item: item, viewModel: viewModel)
             }
             .task { await viewModel.loadItems() }
-            .alert("Fehler", isPresented: .constant(viewModel.error != nil)) {
-                Button("OK") { viewModel.error = nil }
+            .alert("error.generic", isPresented: .constant(viewModel.error != nil)) {
+                Button("button.confirm") { viewModel.error = nil }
             } message: {
                 Text(viewModel.error?.localizedDescription ?? "")
             }
@@ -134,9 +134,9 @@ private struct PantryItemRow: View {
     }
 
     private func expiryText(days: Int) -> String {
-        if days < 0 { return "Abgelaufen" }
-        if days == 0 { return "Heute" }
-        return "noch \(days)d"
+        if days < 0 { return String(localized: "pantry.expiry.expired") }
+        if days == 0 { return String(localized: "pantry.expiry.today") }
+        return String(format: String(localized: "pantry.expiry.days"), days)
     }
 
     private func expiryColor(days: Int) -> Color {

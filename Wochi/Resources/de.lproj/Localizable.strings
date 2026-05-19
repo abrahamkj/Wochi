@@ -109,3 +109,81 @@
 // MARK: - Sign In
 "signin.error.processing" = "Die Anmeldung konnte nicht verarbeitet werden.";
 "signin.default_name" = "Wochi-Nutzer";
+
+// MARK: - Errors (additional)
+"error.generic" = "Fehler";
+
+// MARK: - Shopping (additional)
+"shopping.nav.title" = "Einkaufslisten";
+"shopping.list.archive" = "Archivieren";
+"shopping.list.new" = "Neue Liste";
+"shopping.list.new.name" = "Listenname";
+"shopping.list.new.create" = "Erstellen";
+"shopping.list.empty.title" = "Keine Listen vorhanden";
+"shopping.list.empty.subtitle" = "Erstelle deine erste Einkaufsliste";
+"shopping.list.empty.action" = "Neue Liste erstellen";
+"shopping.item.count" = "%d Artikel";
+"shopping.item.edit.title" = "Artikel bearbeiten";
+"shopping.item.edit.name" = "Name";
+"shopping.item.edit.quantity" = "Menge";
+"shopping.item.edit.unit" = "Einheit";
+"shopping.item.edit.brand" = "Marke";
+"shopping.item.edit.brand.section" = "Marke & Hinweis";
+"shopping.item.edit.brand.preferred" = "Bevorzugt";
+"shopping.item.edit.brand.acceptable" = "Akzeptabel";
+"shopping.item.edit.brand.never" = "Niemals";
+"shopping.item.edit.category.section" = "Kategorie & Details";
+"shopping.item.edit.category" = "Kategorie";
+"shopping.item.edit.note" = "Hinweis";
+"shopping.item.edit.price" = "Geschätzter Preis (€)";
+"shopping.item.delete.confirm" = "Artikel löschen?";
+"shopping.detail.checked.section" = "Erledigt (%d)";
+"shopping.detail.offline" = "Offline – Änderungen werden synchronisiert sobald du online bist";
+"shopping.detail.share" = "Teilen";
+
+// MARK: - Pantry (additional)
+"pantry.nav.title" = "Vorrat";
+"pantry.search" = "Artikel suchen";
+"pantry.item.add.title" = "Artikel hinzufügen";
+"pantry.item.edit.title" = "Artikel bearbeiten";
+"pantry.item.edit.name" = "Name";
+"pantry.item.edit.quantity" = "Menge";
+"pantry.item.edit.unit" = "Einheit";
+"pantry.item.edit.category" = "Kategorie";
+"pantry.item.edit.brand" = "Marke (optional)";
+"pantry.item.edit.expiry.toggle" = "Ablaufdatum";
+"pantry.item.edit.expiry.date" = "Datum";
+"pantry.item.edit.min_stock" = "Mindestbestand";
+"pantry.item.edit.notes" = "Notiz";
+"pantry.item.edit.last_updated" = "Zuletzt geändert: %@";
+"pantry.item.used_up.button" = "Aufgebraucht";
+"pantry.item.used_up.confirm" = "Aufgebraucht — zur Liste hinzufügen?";
+"pantry.item.used_up.add_to_list" = "Zur Einkaufsliste hinzufügen";
+"pantry.item.used_up.mark_only" = "Nur als aufgebraucht markieren";
+"pantry.item.delete.confirm" = "Artikel löschen?";
+"pantry.expiry.expired" = "Abgelaufen";
+"pantry.expiry.today" = "Heute";
+"pantry.expiry.days" = "noch %dd";
+"pantry.item.section.article" = "Artikel";
+"pantry.item.section.details" = "Details";
+"pantry.empty.first_action" = "Ersten Artikel hinzufügen";
+
+// MARK: - Budget (additional)
+"budget.nav.title" = "Ansicht";
+"budget.breakdown.stores" = "Geschäfte";
+"budget.breakdown.categories" = "Kategorien";
+"budget.breakdown.members" = "Mitglieder";
+"budget.all.receipts" = "Alle Kassenbons";
+"budget.change" = "%@ %% gegenüber Vormonat";
+"budget.scan.cta" = "Kassenbon scannen";
+
+// MARK: - Alerts
+"alerts.nav.title" = "Angebote";
+"alerts.empty.title" = "Keine Angebote";
+"alerts.empty.subtitle" = "Keine aktuellen Angebote für deine Produkte.";
+"alerts.ignore" = "Ignorieren";
+"alerts.new.badge" = "Neu";
+"alerts.purchase.question" = "Hast du es gekauft?";
+"alerts.purchased.yes" = "👍";
+"alerts.purchased.no" = "👎";
+"alerts.valid.until" = "bis %@";

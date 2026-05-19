@@ -30,7 +30,7 @@ struct BudgetView: View {
                             symbol: "receipt",
                             title: "budget.empty.title",
                             subtitle: "budget.empty.subtitle",
-                            actionTitle: "Kassenbon scannen"
+                            actionTitle: "budget.scan.cta"
                         ) {
                             showScanner = true
                         }
@@ -39,7 +39,7 @@ struct BudgetView: View {
                 }
                 .padding(.bottom, 20)
             }
-            .navigationTitle(LocalizedStringKey("tab.budget"))
+            .navigationTitle("tab.budget")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button { showScanner = true } label: {
@@ -54,8 +54,8 @@ struct BudgetView: View {
                 ReceiptHistoryView(viewModel: viewModel)
             }
             .task { await viewModel.load() }
-            .alert("Fehler", isPresented: .constant(viewModel.error != nil)) {
-                Button("OK") { viewModel.error = nil }
+            .alert("error.generic", isPresented: .constant(viewModel.error != nil)) {
+                Button("button.confirm") { viewModel.error = nil }
             } message: {
                 Text(viewModel.error?.localizedDescription ?? "")
             }
@@ -90,13 +90,13 @@ struct BudgetView: View {
             if let change = viewModel.monthOverMonthChange {
                 HStack(spacing: 4) {
                     Image(systemName: change >= 0 ? "arrow.up.right" : "arrow.down.right")
-                    Text("\(abs(change).formatted(.number.precision(.fractionLength(0...1)))) % gegenüber letztem Monat")
+                    Text(verbatim: String(format: String(localized: "budget.change"), abs(change).formatted(.number.precision(.fractionLength(0...1)))))
                         .font(.subheadline)
                 }
                 .foregroundStyle(change >= 0 ? .red : .green)
             }
 
-            Text("Basierend auf \(record.receiptCount) Kassenbons")
+            Text(verbatim: String(format: String(localized: "budget.receipts.count"), record.receiptCount))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -110,11 +110,11 @@ struct BudgetView: View {
 
     private func breakdownTabs(record: BudgetRecord) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Picker("Ansicht", selection: $selectedTab) {
-                Text("Geschäfte").tag(0)
-                Text("Kategorien").tag(1)
+            Picker("budget.nav.title", selection: $selectedTab) {
+                Text("budget.breakdown.stores").tag(0)
+                Text("budget.breakdown.categories").tag(1)
                 if record.byMember.count > 1 {
-                    Text("Mitglieder").tag(2)
+                    Text("budget.breakdown.members").tag(2)
                 }
             }
             .pickerStyle(.segmented)
@@ -139,7 +139,7 @@ struct BudgetView: View {
             showReceipts = true
         } label: {
             HStack {
-                Label("Alle Kassenbons", systemImage: "list.bullet.rectangle")
+                Label("budget.all.receipts", systemImage: "list.bullet.rectangle")
                 Spacer()
                 Text("\(viewModel.receipts.count)")
                     .foregroundStyle(.secondary)

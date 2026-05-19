@@ -18,47 +18,46 @@ struct AddPantryItemView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Artikel") {
-                    TextField("Name", text: $name)
+                Section("pantry.item.section.article") {
+                    TextField("pantry.item.edit.name", text: $name)
                     HStack {
-                        Text("Menge")
+                        Text("pantry.item.edit.quantity")
                         Spacer()
                         Stepper("\(quantity.formatted(.number.precision(.fractionLength(0...1))))", value: $quantity, in: 0...999, step: 1)
                     }
-                    Picker("Einheit", selection: $unit) {
+                    Picker("pantry.item.edit.unit", selection: $unit) {
                         Text("–").tag("")
                         ForEach(units, id: \.self) { Text($0).tag($0) }
                     }
-                    Picker("Kategorie", selection: $category) {
+                    Picker("pantry.item.edit.category", selection: $category) {
                         ForEach(ItemCategory.allCases, id: \.self) { cat in
                             Label(cat.rawValue, systemImage: cat.sfSymbol).tag(cat)
                         }
                     }
                 }
 
-                Section("Details") {
-                    TextField("Marke (optional)", text: $brand)
-                    Toggle("Ablaufdatum", isOn: $hasExpiry)
+                Section("pantry.item.section.details") {
+                    TextField("pantry.item.edit.brand", text: $brand)
+                    Toggle("pantry.item.edit.expiry.toggle", isOn: $hasExpiry)
                     if hasExpiry {
-                        DatePicker("Datum", selection: $expiryDate, displayedComponents: .date)
-                            .environment(\.locale, Locale(identifier: "de_DE"))
+                        DatePicker("pantry.item.edit.expiry.date", selection: $expiryDate, displayedComponents: .date)
                     }
                     HStack {
-                        Text("Mindestbestand")
+                        Text("pantry.item.edit.min_stock")
                         Spacer()
                         Stepper("\(lowStockThreshold.formatted(.number.precision(.fractionLength(0...1))))",
                                 value: $lowStockThreshold, in: 0...99, step: 1)
                     }
                 }
             }
-            .navigationTitle("Artikel hinzufügen")
+            .navigationTitle("pantry.item.add.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") { dismiss() }
+                    Button("button.cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Speichern") { save() }
+                    Button("button.save") { save() }
                         .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
