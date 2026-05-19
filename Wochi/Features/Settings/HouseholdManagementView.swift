@@ -18,7 +18,7 @@ struct HouseholdManagementView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Mitglieder") {
+                Section("household.section.members") {
                     ForEach(household.members) { member in
                         HStack(spacing: 12) {
                             MemberAvatarView(member: member, size: 36)
@@ -27,7 +27,7 @@ struct HouseholdManagementView: View {
                                     Text(member.displayName)
                                         .font(.body)
                                     if member.isCurrentDevice {
-                                        Text("Du")
+                                        Text("household.member.you")
                                             .font(.caption)
                                             .padding(.horizontal, 6)
                                             .padding(.vertical, 2)
@@ -54,10 +54,10 @@ struct HouseholdManagementView: View {
                             if isGeneratingInvite {
                                 HStack {
                                     ProgressView()
-                                    Text("Einladungslink wird erstellt...")
+                                    Text("household.invite.generating")
                                 }
                             } else {
-                                Label("Mitglied einladen", systemImage: "person.badge.plus")
+                                Label("household.invite.cta", systemImage: "person.badge.plus")
                             }
                         }
                         .disabled(isGeneratingInvite)
@@ -68,7 +68,7 @@ struct HouseholdManagementView: View {
                     Button(role: .destructive) {
                         showLeaveConfirmation = true
                     } label: {
-                        Label("Haushalt verlassen", systemImage: "rectangle.portrait.and.arrow.right")
+                        Label("household.leave", systemImage: "rectangle.portrait.and.arrow.right")
                     }
                 }
             }
@@ -76,7 +76,7 @@ struct HouseholdManagementView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Fertig") { dismiss() }
+                    Button("button.done") { dismiss() }
                 }
             }
             .sheet(isPresented: $showShareSheet) {
@@ -85,18 +85,21 @@ struct HouseholdManagementView: View {
                 }
             }
             .confirmationDialog(
-                "Möchtest du \(removeMemberCandidate?.displayName ?? "") wirklich entfernen?",
+                Text(verbatim: String(
+                    format: String(localized: "household.member.remove.confirm"),
+                    removeMemberCandidate?.displayName ?? ""
+                )),
                 isPresented: .constant(removeMemberCandidate != nil),
                 titleVisibility: .visible
             ) {
-                Button("Entfernen", role: .destructive) {
+                Button("household.member.remove", role: .destructive) {
                     removeMemberCandidate = nil
                 }
-                Button("Abbrechen", role: .cancel) { removeMemberCandidate = nil }
+                Button("button.cancel", role: .cancel) { removeMemberCandidate = nil }
             }
-            .confirmationDialog("Haushalt verlassen?", isPresented: $showLeaveConfirmation, titleVisibility: .visible) {
-                Button("Verlassen", role: .destructive) { dismiss() }
-                Button("Abbrechen", role: .cancel) {}
+            .confirmationDialog("household.leave.confirm_title", isPresented: $showLeaveConfirmation, titleVisibility: .visible) {
+                Button("household.leave.confirm", role: .destructive) { dismiss() }
+                Button("button.cancel", role: .cancel) {}
             }
         }
     }
@@ -118,7 +121,7 @@ struct HouseholdManagementView: View {
             Button(role: .destructive) {
                 removeMemberCandidate = member
             } label: {
-                Label("Entfernen", systemImage: "person.badge.minus")
+                Label("household.member.remove", systemImage: "person.badge.minus")
             }
         } else {
             EmptyView()

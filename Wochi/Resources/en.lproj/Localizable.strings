@@ -66,3 +66,46 @@
 "settings.icloud" = "iCloud Sync";
 "settings.about" = "About Wochi";
 "settings.siri" = "Siri Shortcuts";
+"settings.section.household" = "Household";
+"settings.section.icloud" = "iCloud";
+"settings.section.siri" = "Siri";
+"settings.section.about" = "About Wochi";
+"settings.household.manage" = "Manage Household";
+"settings.sync.label" = "Synchronization";
+"settings.sync.last" = "Last sync: %@";
+"settings.sync.now" = "Sync Now";
+"settings.sync.synced" = "Synced";
+"settings.sync.syncing" = "Syncing…";
+"settings.sync.offline" = "Offline";
+"settings.version" = "Version";
+"settings.privacy" = "Privacy";
+"settings.terms" = "Terms of Use";
+"settings.contact" = "Contact";
+
+// MARK: - Household Management
+"household.section.members" = "Members";
+"household.member.you" = "You";
+"household.invite.generating" = "Generating invite link…";
+"household.invite.cta" = "Invite Member";
+"household.leave" = "Leave Household";
+"household.leave.confirm_title" = "Leave Household?";
+"household.leave.confirm" = "Leave";
+"household.member.remove" = "Remove";
+"household.member.remove.confirm" = "Do you really want to remove %@?";
+"button.done" = "Done";
+
+// MARK: - Siri Shortcuts
+"siri.description" = "Simply say the phrase to Siri to use the shortcut. You can also customize shortcuts in the Shortcuts app.";
+"siri.shortcut1.title" = "Add Item";
+"siri.shortcut1.subtitle" = "Add an item directly to your active shopping list.";
+"siri.shortcut1.phrase" = "\"Add milk to Wochi\"";
+"siri.shortcut2.title" = "Show Wochi List";
+"siri.shortcut2.subtitle" = "Open your current shopping list.";
+"siri.shortcut2.phrase" = "\"Open my Wochi list\"";
+"siri.shortcut3.title" = "Check Pantry";
+"siri.shortcut3.subtitle" = "See your current pantry inventory.";
+"siri.shortcut3.phrase" = "\"Show my pantry in Wochi\"";
+
+// MARK: - Sign In
+"signin.error.processing" = "The sign-in could not be processed.";
+"signin.default_name" = "Wochi User";

@@ -11,7 +11,7 @@ private final class HouseholdSetupViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var showError: Bool = false
 
-    private let repository: HouseholdRepositoryProtocol
+    var repository: HouseholdRepositoryProtocol
 
     init(repository: HouseholdRepositoryProtocol) {
         self.repository = repository
@@ -40,14 +40,44 @@ private final class HouseholdSetupViewModel: ObservableObject {
     }
 
     func joinHousehold(via urlString: String, appState: AppState) async {
-        guard let url = URL(string: urlString.trimmingCharacters(in: .whitespaces)) else {
+        let trimmed = urlString.trimmingCharacters(in: .whitespaces)
+        guard let url = URL(string: trimmed) else {
             errorMessage = WochiError.invalidInviteLink.localizedDescription
             showError = true
             return
         }
-        await HouseholdShareManager.shared.handleIncomingURL(url)
-        // The share acceptance flow posts a notification; the app state will
-        // be updated by the observer set up in WochiApp.
+
+        // Parse household UUID from wochi://invite/<uuid> or wochi://invite?household=<uuid>
+        let uuidString: String?
+        if let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems,
+           let item = items.first(where: { $0.name == "household" }) {
+            uuidString = item.value
+        } else {
+            let last = url.lastPathComponent
+            uuidString = last.isEmpty ? nil : last
+        }
+
+        guard let idString = uuidString, let householdID = UUID(uuidString: idString) else {
+            errorMessage = WochiError.invalidInviteLink.localizedDescription
+            showError = true
+            return
+        }
+
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            if let household = try await repository.fetchHousehold(byID: householdID) {
+                UserDefaults.standard.set(household.id.uuidString, forKey: Constants.UserDefaults.householdID)
+                appState.currentHousehold = household
+            } else {
+                errorMessage = WochiError.householdNotFound.localizedDescription
+                showError = true
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+        }
     }
 }
 
@@ -58,13 +88,11 @@ struct HouseholdSetupView: View {
     @EnvironmentObject private var appState: AppState
     @Environment(\.modelContext) private var modelContext
 
-    @StateObject private var viewModel: HouseholdSetupViewModel = {
-        // Repository is seeded with the live model context in onAppear.
-        HouseholdSetupViewModel(repository: _PlaceholderHouseholdRepository())
-    }()
+    @StateObject private var viewModel = HouseholdSetupViewModel(
+        repository: _PlaceholderHouseholdRepository()
+    )
 
     @State private var path: SetupPath = .choice
-    @State private var didFinish: Bool = false
 
     private enum SetupPath {
         case choice, create, join
@@ -90,6 +118,9 @@ struct HouseholdSetupView: View {
                         : LocalizedStringKey("household.create.title")
             )
             .navigationBarTitleDisplayMode(.inline)
+        }
+        .task {
+            viewModel.repository = HouseholdRepository(context: modelContext)
         }
         .alert(
             Text(verbatim: viewModel.errorMessage ?? ""),
@@ -275,10 +306,11 @@ struct HouseholdSetupView: View {
     }
 }
 
-// MARK: - Placeholder repository (used only until model context is available)
+// MARK: - Placeholder repository (used until model context is injected via .task)
 
 private final class _PlaceholderHouseholdRepository: HouseholdRepositoryProtocol {
     func fetchCurrentHousehold() async throws -> Household? { nil }
+    func fetchHousehold(byID id: UUID) async throws -> Household? { nil }
     func createHousehold(name: String) async throws -> Household { Household(name: name) }
     func inviteMember(to household: Household) async throws -> URL {
         guard let url = URL(string: "wochi://invite/\(household.id.uuidString)") else {

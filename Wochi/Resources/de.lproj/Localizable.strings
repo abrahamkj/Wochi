@@ -66,3 +66,46 @@
 "settings.icloud" = "iCloud-Synchronisierung";
 "settings.about" = "Über Wochi";
 "settings.siri" = "Siri-Kurzbefehle";
+"settings.section.household" = "Haushalt";
+"settings.section.icloud" = "iCloud";
+"settings.section.siri" = "Siri";
+"settings.section.about" = "Über Wochi";
+"settings.household.manage" = "Haushalt verwalten";
+"settings.sync.label" = "Synchronisierung";
+"settings.sync.last" = "Zuletzt: %@";
+"settings.sync.now" = "Jetzt synchronisieren";
+"settings.sync.synced" = "Synchronisiert";
+"settings.sync.syncing" = "Synchronisiert…";
+"settings.sync.offline" = "Offline";
+"settings.version" = "Version";
+"settings.privacy" = "Datenschutz";
+"settings.terms" = "Nutzungsbedingungen";
+"settings.contact" = "Kontakt";
+
+// MARK: - Household Management
+"household.section.members" = "Mitglieder";
+"household.member.you" = "Du";
+"household.invite.generating" = "Einladungslink wird erstellt…";
+"household.invite.cta" = "Mitglied einladen";
+"household.leave" = "Haushalt verlassen";
+"household.leave.confirm_title" = "Haushalt verlassen?";
+"household.leave.confirm" = "Verlassen";
+"household.member.remove" = "Entfernen";
+"household.member.remove.confirm" = "Möchtest du %@ wirklich entfernen?";
+"button.done" = "Fertig";
+
+// MARK: - Siri Shortcuts
+"siri.description" = "Sage einfach den Satz zu Siri, um den Kurzbefehl zu nutzen. Du kannst die Kurzbefehle auch in der Shortcuts-App anpassen.";
+"siri.shortcut1.title" = "Artikel hinzufügen";
+"siri.shortcut1.subtitle" = "Füge einen Artikel direkt zu deiner aktiven Einkaufsliste hinzu.";
+"siri.shortcut1.phrase" = "„Füge Milch zu Wochi hinzu"";
+"siri.shortcut2.title" = "Wochi Liste anzeigen";
+"siri.shortcut2.subtitle" = "Öffne deine aktuelle Einkaufsliste.";
+"siri.shortcut2.phrase" = "„Öffne meine Wochi Liste"";
+"siri.shortcut3.title" = "Vorräte prüfen";
+"siri.shortcut3.subtitle" = "Sieh dir deinen aktuellen Vorrat an.";
+"siri.shortcut3.phrase" = "„Zeige meine Vorräte in Wochi"";
+
+// MARK: - Sign In
+"signin.error.processing" = "Die Anmeldung konnte nicht verarbeitet werden.";
+"signin.default_name" = "Wochi-Nutzer";

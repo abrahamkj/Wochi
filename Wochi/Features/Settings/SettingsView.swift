@@ -9,12 +9,12 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Haushalt") {
+                Section("settings.section.household") {
                     Button {
                         showHouseholdManagement = true
                     } label: {
                         HStack {
-                            Label("Haushalt verwalten", systemImage: "house.fill")
+                            Label("settings.household.manage", systemImage: "house.fill")
                             Spacer()
                             if let h = appState.currentHousehold {
                                 Text(h.name)
@@ -29,30 +29,30 @@ struct SettingsView: View {
                     .foregroundStyle(.primary)
                 }
 
-                Section("iCloud") {
+                Section("settings.section.icloud") {
                     HStack {
-                        Label("Synchronisierung", systemImage: "icloud")
+                        Label("settings.sync.label", systemImage: "icloud")
                         Spacer()
                         syncStatusBadge
                     }
                     if let last = cloudKit.lastSyncDate {
-                        Text("Zuletzt: \(last.germanDateString)")
+                        Text(verbatim: String(format: String(localized: "settings.sync.last"), last.germanDateString))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Button {
                         Task { await cloudKit.checkAccountStatus() }
                     } label: {
-                        Label("Jetzt synchronisieren", systemImage: "arrow.clockwise")
+                        Label("settings.sync.now", systemImage: "arrow.clockwise")
                     }
                 }
 
-                Section("Siri") {
+                Section("settings.section.siri") {
                     Button {
                         showSiriShortcuts = true
                     } label: {
                         HStack {
-                            Label("Siri-Kurzbefehle", systemImage: "waveform")
+                            Label("settings.siri", systemImage: "waveform")
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .foregroundStyle(.secondary)
@@ -62,19 +62,19 @@ struct SettingsView: View {
                     .foregroundStyle(.primary)
                 }
 
-                Section("Über Wochi") {
-                    LabeledContent("Version") {
+                Section("settings.section.about") {
+                    LabeledContent("settings.version") {
                         Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
                             .foregroundStyle(.secondary)
                     }
                     Link(destination: URL(string: "https://wochi.app/privacy")!) {
-                        Label("Datenschutz", systemImage: "hand.raised")
+                        Label("settings.privacy", systemImage: "hand.raised")
                     }
                     Link(destination: URL(string: "https://wochi.app/terms")!) {
-                        Label("Nutzungsbedingungen", systemImage: "doc.text")
+                        Label("settings.terms", systemImage: "doc.text")
                     }
                     Link(destination: URL(string: "mailto:support@wochi.app")!) {
-                        Label("Kontakt", systemImage: "envelope")
+                        Label("settings.contact", systemImage: "envelope")
                     }
                 }
             }
@@ -94,18 +94,18 @@ struct SettingsView: View {
     private var syncStatusBadge: some View {
         switch cloudKit.syncStatus {
         case .synced:
-            Label("Synchronisiert", systemImage: "checkmark.circle.fill")
+            Label("settings.sync.synced", systemImage: "checkmark.circle.fill")
                 .foregroundStyle(.green)
                 .font(.caption)
         case .syncing:
             HStack(spacing: 4) {
                 ProgressView()
                     .controlSize(.mini)
-                Text("Synchronisiert...")
+                Text("settings.sync.syncing")
                     .font(.caption)
             }
         case .offline:
-            Label("Offline", systemImage: "wifi.slash")
+            Label("settings.sync.offline", systemImage: "wifi.slash")
                 .foregroundStyle(.orange)
                 .font(.caption)
         case .error(let msg):

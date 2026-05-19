@@ -4,6 +4,7 @@ import CloudKit
 
 protocol HouseholdRepositoryProtocol {
     func fetchCurrentHousehold() async throws -> Household?
+    func fetchHousehold(byID id: UUID) async throws -> Household?
     func createHousehold(name: String) async throws -> Household
     func inviteMember(to household: Household) async throws -> URL
     func removeMember(_ member: HouseholdMember, from household: Household) async throws
@@ -26,6 +27,12 @@ final class HouseholdRepository: HouseholdRepositoryProtocol {
             sortBy: [SortDescriptor(\.createdAt)]
         )
         return try context.fetch(descriptor).first
+    }
+
+    func fetchHousehold(byID id: UUID) async throws -> Household? {
+        let descriptor = FetchDescriptor<Household>()
+        let all = try context.fetch(descriptor)
+        return all.first { $0.id == id }
     }
 
     func createHousehold(name: String) async throws -> Household {
@@ -54,7 +61,8 @@ final class HouseholdRepository: HouseholdRepositoryProtocol {
     }
 
     func leaveHousehold(_ household: Household) async throws {
-        try await shareManager.leaveShare(for: household)
+        // CloudKit share removal is best-effort; local deletion always proceeds.
+        try? await shareManager.leaveShare(for: household)
         context.delete(household)
         try context.save()
     }

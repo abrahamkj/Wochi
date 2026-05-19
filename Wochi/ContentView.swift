@@ -56,6 +56,11 @@ struct ContentView: View {
                 }
                 .tag(Tab.settings)
         }
+        .task {
+            guard appState.currentHousehold == nil else { return }
+            let repo = HouseholdRepository(context: context)
+            appState.currentHousehold = try? await repo.fetchCurrentHousehold()
+        }
     }
 }
 

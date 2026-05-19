@@ -14,21 +14,21 @@ struct SiriShortcutsView: View {
     private let shortcuts: [ShortcutInfo] = [
         ShortcutInfo(
             symbol: "cart.badge.plus",
-            title: "Artikel hinzufügen",
-            subtitle: "Füge einen Artikel direkt zu deiner aktiven Einkaufsliste hinzu.",
-            phrase: "\u{201E}Füge Milch zu Wochi hinzu\u{201C}"
+            title: String(localized: "siri.shortcut1.title"),
+            subtitle: String(localized: "siri.shortcut1.subtitle"),
+            phrase: String(localized: "siri.shortcut1.phrase")
         ),
         ShortcutInfo(
             symbol: "list.bullet",
-            title: "Wochi Liste anzeigen",
-            subtitle: "Öffne deine aktuelle Einkaufsliste.",
-            phrase: "\u{201E}Öffne meine Wochi Liste\u{201C}"
+            title: String(localized: "siri.shortcut2.title"),
+            subtitle: String(localized: "siri.shortcut2.subtitle"),
+            phrase: String(localized: "siri.shortcut2.phrase")
         ),
         ShortcutInfo(
             symbol: "cabinet",
-            title: "Vorräte prüfen",
-            subtitle: "Sieh dir deinen aktuellen Vorrat an.",
-            phrase: "\u{201E}Zeige meine Vorräte in Wochi\u{201C}"
+            title: String(localized: "siri.shortcut3.title"),
+            subtitle: String(localized: "siri.shortcut3.subtitle"),
+            phrase: String(localized: "siri.shortcut3.phrase")
         ),
     ]
 
@@ -36,7 +36,7 @@ struct SiriShortcutsView: View {
         NavigationStack {
             List {
                 Section {
-                    Text("Sage einfach den Satz zu Siri, um den Kurzbefehl zu nutzen. Du kannst die Kurzbefehle auch in der Shortcuts-App anpassen.")
+                    Text("siri.description")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .listRowBackground(Color.clear)
@@ -55,12 +55,12 @@ struct SiriShortcutsView: View {
                             }
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(shortcut.title)
+                            Text(verbatim: shortcut.title)
                                 .font(.body)
-                            Text(shortcut.subtitle)
+                            Text(verbatim: shortcut.subtitle)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            Text(shortcut.phrase)
+                            Text(verbatim: shortcut.phrase)
                                 .font(.caption).italic()
                                 .foregroundColor(.accentColor)
                         }
@@ -68,11 +68,11 @@ struct SiriShortcutsView: View {
                     .padding(.vertical, 4)
                 }
             }
-            .navigationTitle("Siri-Kurzbefehle")
+            .navigationTitle("settings.siri")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Fertig") { dismiss() }
+                    Button("button.done") { dismiss() }
                 }
             }
         }

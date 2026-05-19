@@ -53,7 +53,7 @@ struct SignInView: View {
             guard
                 let credential = authorization.credential as? ASAuthorizationAppleIDCredential
             else {
-                showErrorMessage("Die Anmeldung konnte nicht verarbeitet werden.")
+                showErrorMessage(String(localized: "signin.error.processing"))
                 return
             }
 
@@ -64,7 +64,7 @@ struct SignInView: View {
                    !firstName.isEmpty {
                     return "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
                 }
-                return "Wochi-Nutzer"
+                return String(localized: "signin.default_name")
             }()
 
             let member = HouseholdMember(
