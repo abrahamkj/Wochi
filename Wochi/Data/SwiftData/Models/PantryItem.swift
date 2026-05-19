@@ -3,18 +3,18 @@ import SwiftData
 
 @Model
 final class PantryItem {
-    var id: UUID
-    var name: String
-    var quantity: Double
+    var id: UUID = UUID()
+    var name: String = ""
+    var quantity: Double = 1
     var unit: String?
-    var category: ItemCategory
+    var category: ItemCategory = .other
     var brand: String?
     var barcode: String?
     var expiryDate: Date?
     var openedDate: Date?
-    var lowStockThreshold: Double
-    var addedAt: Date
-    var lastUpdatedAt: Date
+    var lowStockThreshold: Double = 1
+    var addedAt: Date = Date()
+    var lastUpdatedAt: Date = Date()
     var lastUpdatedByMemberID: UUID?
     var imageData: Data?
     var notes: String?

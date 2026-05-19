@@ -3,22 +3,22 @@ import SwiftData
 
 @Model
 final class Receipt {
-    var id: UUID
-    var storeName: String
+    var id: UUID = UUID()
+    var storeName: String = ""
     var storeAddress: String?
-    var purchaseDate: Date
-    var totalAmount: Double
-    var currency: String
-    var scannedAt: Date
+    var purchaseDate: Date = Date()
+    var totalAmount: Double = 0
+    var currency: String = "EUR"
+    var scannedAt: Date = Date()
     var scannedByMemberID: UUID?
     var rawOCRText: String?
     var imageData: Data?
-    var isVerified: Bool
+    var isVerified: Bool = false
 
     var household: Household?
 
     @Relationship(deleteRule: .cascade)
-    var items: [ReceiptItem]
+    var items: [ReceiptItem]? = nil
 
     init(storeName: String, purchaseDate: Date, totalAmount: Double) {
         self.id = UUID()

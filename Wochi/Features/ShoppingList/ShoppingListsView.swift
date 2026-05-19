@@ -221,7 +221,7 @@ private final class PreviewShoppingListRepository: ShoppingListRepositoryProtoco
     }
 
     func addItem(_ item: ShoppingItem, to list: ShoppingList) async throws {
-        list.items.append(item)
+        list.items = (list.items ?? []) + [item]
     }
 
     func updateItem(_ item: ShoppingItem) async throws {}

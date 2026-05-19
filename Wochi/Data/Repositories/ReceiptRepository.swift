@@ -18,7 +18,7 @@ final class ReceiptRepository: ReceiptRepositoryProtocol {
 
     func saveReceipt(_ receipt: Receipt, for household: Household) async throws {
         receipt.household = household
-        household.receipts.append(receipt)
+        household.receipts = (household.receipts ?? []) + [receipt]
         context.insert(receipt)
         try context.save()
     }

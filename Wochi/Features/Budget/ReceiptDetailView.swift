@@ -14,8 +14,8 @@ struct ReceiptDetailView: View {
                     LabeledContent(String(localized: "receipt.review.scanned"), value: receipt.scannedAt.germanDateString)
                 }
 
-                Section(String(format: String(localized: "receipt.detail.items"), receipt.items.count)) {
-                    ForEach(receipt.items) { item in
+                Section(String(format: String(localized: "receipt.detail.items"), (receipt.items ?? []).count)) {
+                    ForEach(receipt.items ?? []) { item in
                         HStack {
                             VStack(alignment: .leading) {
                                 Text(item.name)

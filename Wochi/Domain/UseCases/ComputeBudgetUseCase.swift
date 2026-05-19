@@ -22,7 +22,7 @@ enum ComputeBudgetUseCase {
                 }
                 .sorted { $0.amount > $1.amount }
 
-            let allItems = filtered.flatMap { $0.items }
+            let allItems = filtered.flatMap { $0.items ?? [] }
             byCategory = Dictionary(grouping: allItems, by: \.category)
                 .map { category, items in
                     let amount = items.reduce(0) { $0 + $1.totalPrice }
@@ -37,7 +37,7 @@ enum ComputeBudgetUseCase {
             byMember = Dictionary(grouping: filtered, by: \.scannedByMemberID)
                 .compactMap { memberID, memberReceipts -> BudgetRecord.MemberSpend? in
                     guard let memberID else { return nil }
-                    let member = household.members.first { $0.id == memberID }
+                    let member = (household.members ?? []).first { $0.id == memberID }
                     let amount = memberReceipts.reduce(0) { $0 + $1.totalAmount }
                     return BudgetRecord.MemberSpend(
                         memberID: memberID,

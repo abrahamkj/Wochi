@@ -3,16 +3,16 @@ import SwiftData
 
 @Model
 final class ReceiptItem {
-    var id: UUID
-    var name: String
+    var id: UUID = UUID()
+    var name: String = ""
     var normalizedName: String?
     var brand: String?
-    var quantity: Double
+    var quantity: Double = 1
     var unit: String?
-    var unitPrice: Double
-    var totalPrice: Double
-    var category: ItemCategory
-    var isDiscounted: Bool
+    var unitPrice: Double = 0
+    var totalPrice: Double = 0
+    var category: ItemCategory = .other
+    var isDiscounted: Bool = false
     var originalPrice: Double?
 
     var receipt: Receipt?

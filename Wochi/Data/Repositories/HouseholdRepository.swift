@@ -43,14 +43,14 @@ final class HouseholdRepository: HouseholdRepositoryProtocol {
     }
 
     func inviteMember(to household: Household) async throws -> URL {
-        guard household.members.count < Constants.Household.maxMembers else {
+        guard (household.members ?? []).count < Constants.Household.maxMembers else {
             throw WochiError.householdFull
         }
         return try await shareManager.createShareURL(for: household)
     }
 
     func removeMember(_ member: HouseholdMember, from household: Household) async throws {
-        household.members.removeAll { $0.id == member.id }
+        household.members = (household.members ?? []).filter { $0.id != member.id }
         context.delete(member)
         try context.save()
     }

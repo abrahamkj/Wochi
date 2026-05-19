@@ -27,7 +27,7 @@ struct AddItemToWochiIntent: AppIntent {
         let item = ShoppingItem(name: itemName, quantity: quantity, unit: unit)
         item.sourceType = .voice
         item.list = list
-        list.items.append(item)
+        list.items = (list.items ?? []) + [item]
         context.insert(item)
         try context.save()
         let unitText = unit.map { " \($0)" } ?? ""

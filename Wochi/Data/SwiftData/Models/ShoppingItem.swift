@@ -3,23 +3,23 @@ import SwiftData
 
 @Model
 final class ShoppingItem {
-    var id: UUID
-    var name: String
-    var quantity: Double
+    var id: UUID = UUID()
+    var name: String = ""
+    var quantity: Double = 1
     var unit: String?
     var preferredBrand: String?
-    var brandTier: BrandPreference
-    var category: ItemCategory
+    var brandTier: BrandPreference = .acceptable
+    var category: ItemCategory = .other
     var note: String?
     var estimatedPrice: Double?
     var suggestedStore: String?
-    var isChecked: Bool
+    var isChecked: Bool = false
     var checkedAt: Date?
-    var sortOrder: Int
-    var addedAt: Date
+    var sortOrder: Int = 0
+    var addedAt: Date = Date()
     var addedByMemberID: UUID?
     var checkedByMemberID: UUID?
-    var sourceType: ItemSourceType
+    var sourceType: ItemSourceType = .manual
 
     var list: ShoppingList?
 

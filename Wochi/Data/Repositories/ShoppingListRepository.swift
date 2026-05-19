@@ -39,8 +39,8 @@ final class ShoppingListRepository: ShoppingListRepositoryProtocol {
 
     func addItem(_ item: ShoppingItem, to list: ShoppingList) async throws {
         item.list = list
-        item.sortOrder = list.items.count
-        list.items.append(item)
+        item.sortOrder = (list.items ?? []).count
+        list.items = (list.items ?? []) + [item]
         list.updatedAt = Date()
         context.insert(item)
         try context.save()

@@ -17,7 +17,7 @@ struct HouseholdManagementView: View {
         NavigationStack {
             List {
                 Section("household.section.members") {
-                    ForEach(household.members) { member in
+                    ForEach(household.members ?? []) { member in
                         HStack(spacing: 12) {
                             MemberAvatarView(member: member, size: 36)
                             VStack(alignment: .leading) {
@@ -51,7 +51,7 @@ struct HouseholdManagementView: View {
                         }
                     }
 
-                    if household.members.count < Constants.Household.maxMembers {
+                    if (household.members ?? []).count < Constants.Household.maxMembers {
                         Button {
                             Task { await generateInviteLink() }
                         } label: {

@@ -29,7 +29,8 @@ final class PantryRepository: PantryRepositoryProtocol {
 
     func addItem(_ item: PantryItem, to household: Household) async throws {
         item.household = household
-        household.pantryItems.append(item)
+        household.pantryItems = (household.pantryItems ?? []) + [item]
+
         context.insert(item)
         try context.save()
     }

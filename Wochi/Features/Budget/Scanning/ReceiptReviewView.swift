@@ -35,7 +35,7 @@ struct ReceiptReviewView: View {
         _storeName = State(initialValue: receipt.storeName)
         _customStoreName = State(initialValue: detectedChain == nil ? receipt.storeName : "")
         _purchaseDate = State(initialValue: receipt.purchaseDate)
-        _editableItems = State(initialValue: receipt.items.map { EditableReceiptItem(from: $0) })
+        _editableItems = State(initialValue: (receipt.items ?? []).map { EditableReceiptItem(from: $0) })
         _parsedTotal = State(initialValue: receipt.totalAmount)
     }
 

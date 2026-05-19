@@ -3,14 +3,14 @@ import SwiftData
 
 @Model
 final class PreferredStore {
-    var id: UUID
-    var storeChain: StoreChain
+    var id: UUID = UUID()
+    var storeChain: StoreChain = .other
     var customName: String?
     var address: String?
     var latitude: Double?
     var longitude: Double?
-    var isActive: Bool
-    var sortOrder: Int
+    var isActive: Bool = true
+    var sortOrder: Int = 0
 
     var household: Household?
 

@@ -3,14 +3,14 @@ import SwiftData
 
 @Model
 final class HouseholdMember {
-    var id: UUID
-    var appleUserID: String
-    var displayName: String
+    var id: UUID = UUID()
+    var appleUserID: String = ""
+    var displayName: String = ""
     var email: String?
-    var avatarColor: String
-    var role: MemberRole
-    var joinedAt: Date
-    var isCurrentDevice: Bool
+    var avatarColor: String = "#4ade80"
+    var role: MemberRole = .member
+    var joinedAt: Date = Date()
+    var isCurrentDevice: Bool = false
 
     var household: Household?
 

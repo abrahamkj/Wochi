@@ -3,22 +3,22 @@ import SwiftData
 
 @Model
 final class SubstitutionAlert {
-    var id: UUID
-    var productName: String
+    var id: UUID = UUID()
+    var productName: String = ""
     var preferredBrand: String?
-    var currentStore: StoreChain
-    var dealStore: StoreChain
-    var regularPrice: Double
-    var dealPrice: Double
-    var savingsPercent: Double
-    var validFrom: Date
-    var validUntil: Date
+    var currentStore: StoreChain = .other
+    var dealStore: StoreChain = .other
+    var regularPrice: Double = 0
+    var dealPrice: Double = 0
+    var savingsPercent: Double = 0
+    var validFrom: Date = Date()
+    var validUntil: Date = Date()
     var flyerImageURL: String?
-    var isRead: Bool
-    var isDismissed: Bool
-    var createdAt: Date
+    var isRead: Bool = false
+    var isDismissed: Bool = false
+    var createdAt: Date = Date()
 
-    var household: Household?
+    @Relationship var household: Household?
 
     init(productName: String, dealStore: StoreChain, regularPrice: Double, dealPrice: Double, validUntil: Date) {
         self.id = UUID()

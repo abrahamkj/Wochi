@@ -27,7 +27,7 @@ private final class HouseholdSetupViewModel: ObservableObject {
                 id: UUID()
             )
             if let member = appState.currentMember {
-                household.members.append(member)
+                household.members = (household.members ?? []) + [member]
                 member.household = household
             }
             UserDefaults.standard.set(household.id.uuidString, forKey: Constants.UserDefaults.householdID)
@@ -83,7 +83,7 @@ private final class HouseholdSetupViewModel: ObservableObject {
             } else {
                 household = try await repository.createHousehold(name: householdName, id: householdID)
                 if let member = appState.currentMember {
-                    household.members.append(member)
+                    household.members = (household.members ?? []) + [member]
                     member.household = household
                 }
             }

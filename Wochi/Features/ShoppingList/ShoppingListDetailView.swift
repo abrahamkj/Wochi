@@ -277,13 +277,13 @@ private struct ShoppingItemRow: View {
 private final class PreviewShoppingListRepository: ShoppingListRepositoryProtocol {
     func fetchAllLists(for household: Household) async throws -> [ShoppingList] { [] }
     func createList(name: String, in household: Household) async throws -> ShoppingList { ShoppingList(name: name) }
-    func addItem(_ item: ShoppingItem, to list: ShoppingList) async throws { list.items.append(item) }
+    func addItem(_ item: ShoppingItem, to list: ShoppingList) async throws { list.items = (list.items ?? []) + [item] }
     func updateItem(_ item: ShoppingItem) async throws {}
     func checkOffItem(_ item: ShoppingItem, by member: HouseholdMember?) async throws {
         item.isChecked = true; item.checkedAt = Date()
     }
     func deleteItem(_ item: ShoppingItem) async throws {
-        item.list?.items.removeAll { $0.id == item.id }
+        item.list?.items = item.list?.items?.filter { $0.id != item.id }
     }
     func archiveList(_ list: ShoppingList) async throws { list.isArchived = true }
     func deleteList(_ list: ShoppingList) async throws {}
