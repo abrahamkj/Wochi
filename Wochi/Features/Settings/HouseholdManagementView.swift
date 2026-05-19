@@ -1,7 +1,9 @@
 import SwiftUI
+import SwiftData
 
 struct HouseholdManagementView: View {
     @EnvironmentObject var appState: AppState
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     let household: Household
 
@@ -10,10 +12,6 @@ struct HouseholdManagementView: View {
     @State private var removeMemberCandidate: HouseholdMember?
     @State private var showLeaveConfirmation = false
     @State private var isGeneratingInvite = false
-
-    var canManage: Bool {
-        appState.currentMember?.role == .owner || appState.currentMember?.role == .admin
-    }
 
     var body: some View {
         NavigationStack {
@@ -43,11 +41,17 @@ struct HouseholdManagementView: View {
                             Spacer()
                         }
                         .swipeActions(edge: .trailing) {
-                            swipeActions(for: member)
+                            if !member.isCurrentDevice {
+                                Button(role: .destructive) {
+                                    removeMemberCandidate = member
+                                } label: {
+                                    Label("household.member.remove", systemImage: "person.badge.minus")
+                                }
+                            }
                         }
                     }
 
-                    if canManage && household.members.count < Constants.Household.maxMembers {
+                    if household.members.count < Constants.Household.maxMembers {
                         Button {
                             Task { await generateInviteLink() }
                         } label: {
@@ -93,12 +97,20 @@ struct HouseholdManagementView: View {
                 titleVisibility: .visible
             ) {
                 Button("household.member.remove", role: .destructive) {
+                    if let member = removeMemberCandidate {
+                        Task {
+                            let repo = HouseholdRepository(context: modelContext)
+                            try? await repo.removeMember(member, from: household)
+                        }
+                    }
                     removeMemberCandidate = nil
                 }
                 Button("button.cancel", role: .cancel) { removeMemberCandidate = nil }
             }
             .confirmationDialog("household.leave.confirm_title", isPresented: $showLeaveConfirmation, titleVisibility: .visible) {
-                Button("household.leave.confirm", role: .destructive) { dismiss() }
+                Button("household.leave.confirm", role: .destructive) {
+                    Task { await leaveHousehold() }
+                }
                 Button("button.cancel", role: .cancel) {}
             }
         }
@@ -115,17 +127,11 @@ struct HouseholdManagementView: View {
         showShareSheet = true
     }
 
-    @ViewBuilder
-    private func swipeActions(for member: HouseholdMember) -> some View {
-        if canManage && !member.isCurrentDevice {
-            Button(role: .destructive) {
-                removeMemberCandidate = member
-            } label: {
-                Label("household.member.remove", systemImage: "person.badge.minus")
-            }
-        } else {
-            EmptyView()
-        }
+    private func leaveHousehold() async {
+        let repo = HouseholdRepository(context: modelContext)
+        try? await repo.leaveHousehold(household)
+        appState.currentHousehold = nil
+        dismiss()
     }
 }
 

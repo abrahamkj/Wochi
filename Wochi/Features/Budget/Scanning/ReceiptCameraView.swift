@@ -22,24 +22,8 @@ struct ReceiptCameraView: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            // Camera picker fills the background
-            if showPicker {
-                ImagePickerRepresentable(
-                    sourceType: pickerSource,
-                    flashMode: flashOn ? .on : .off,
-                    onImagePicked: { image in
-                        showPicker = false
-                        Task { await handlePicked(image: image) }
-                    },
-                    onCancel: { showPicker = false }
-                )
-                .ignoresSafeArea()
-            }
-
-            // Receipt-frame guide overlay
             ReceiptGuideOverlay()
 
-            // Controls overlay
             VStack {
                 HStack {
                     Button {
@@ -89,7 +73,7 @@ struct ReceiptCameraView: View {
                         pickerSource = .photoLibrary
                         showPicker = true
                     } label: {
-                        Text("Aus Fotos wählen")
+                        Text("budget.camera.library")
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(.white)
                             .padding(.horizontal, 20)
@@ -102,7 +86,6 @@ struct ReceiptCameraView: View {
                 .padding(.bottom, 48)
             }
 
-            // Loading overlay
             if isScanning {
                 Color.black.opacity(0.6).ignoresSafeArea()
                 VStack(spacing: 16) {
@@ -110,11 +93,23 @@ struct ReceiptCameraView: View {
                         .progressViewStyle(.circular)
                         .tint(.white)
                         .scaleEffect(1.4)
-                    Text("Bon wird erkannt…")
+                    Text("budget.camera.scanning")
                         .font(.subheadline)
                         .foregroundStyle(.white)
                 }
             }
+        }
+        .fullScreenCover(isPresented: $showPicker) {
+            ImagePickerRepresentable(
+                sourceType: pickerSource,
+                flashMode: flashOn ? .on : .off,
+                onImagePicked: { image in
+                    showPicker = false
+                    Task { await handlePicked(image: image) }
+                },
+                onCancel: { showPicker = false }
+            )
+            .ignoresSafeArea()
         }
         .fullScreenCover(isPresented: $showReview) {
             if let receipt = scannedReceipt {
@@ -127,17 +122,13 @@ struct ReceiptCameraView: View {
             }
         }
         .alert(
-            "Fehler beim Scannen",
+            "budget.camera.error",
             isPresented: $showErrorAlert,
             presenting: scanError
         ) { _ in
             Button("OK", role: .cancel) {}
         } message: { error in
             Text(error.localizedDescription)
-        }
-        .onAppear {
-            pickerSource = UIImagePickerController.isSourceTypeAvailable(.camera) ? .camera : .photoLibrary
-            showPicker = true
         }
     }
 
@@ -203,7 +194,7 @@ private struct ReceiptGuideOverlay: View {
                 .frame(width: cornerLength, height: cornerLength)
                 .foregroundStyle(.white)
 
-                Text("Kassenbon ausrichten")
+                Text("budget.camera.guide")
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.8))
                     .position(x: geo.size.width / 2, y: y + height + 20)

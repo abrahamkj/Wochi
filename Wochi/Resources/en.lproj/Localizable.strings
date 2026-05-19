@@ -177,6 +177,12 @@
 "budget.change" = "%@ %% vs last month";
 "budget.scan.cta" = "Scan receipt";
 
+// MARK: - Receipt Camera
+"budget.camera.guide" = "Align receipt";
+"budget.camera.library" = "Choose from Photos";
+"budget.camera.scanning" = "Scanning receipt…";
+"budget.camera.error" = "Scan Error";
+
 // MARK: - Alerts
 "alerts.nav.title" = "Deals";
 "alerts.empty.title" = "No deals";

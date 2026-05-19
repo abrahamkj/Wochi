@@ -177,6 +177,12 @@
 "budget.change" = "%@ %% gegenüber Vormonat";
 "budget.scan.cta" = "Kassenbon scannen";
 
+// MARK: - Receipt Camera
+"budget.camera.guide" = "Kassenbon ausrichten";
+"budget.camera.library" = "Aus Fotos wählen";
+"budget.camera.scanning" = "Bon wird erkannt…";
+"budget.camera.error" = "Fehler beim Scannen";
+
 // MARK: - Alerts
 "alerts.nav.title" = "Angebote";
 "alerts.empty.title" = "Keine Angebote";
