@@ -15,12 +15,12 @@ struct ReceiptHistoryView: View {
                         Button(role: .destructive) {
                             deleteCandidate = receipt
                         } label: {
-                            Label("Löschen", systemImage: "trash")
+                            Label("button.delete", systemImage: "trash")
                         }
                     }
             }
         }
-        .navigationTitle("Kassenbons")
+        .navigationTitle("receipt.history.title")
         .navigationBarTitleDisplayMode(.inline)
         .overlay {
             if viewModel.receipts.isEmpty {
@@ -34,14 +34,14 @@ struct ReceiptHistoryView: View {
         .sheet(item: $selectedReceipt) { receipt in
             ReceiptDetailView(receipt: receipt)
         }
-        .confirmationDialog("Kassenbon löschen?", isPresented: .constant(deleteCandidate != nil), titleVisibility: .visible) {
-            Button("Löschen", role: .destructive) {
+        .confirmationDialog("receipt.history.delete.confirm", isPresented: .constant(deleteCandidate != nil), titleVisibility: .visible) {
+            Button("button.delete", role: .destructive) {
                 if let r = deleteCandidate {
                     Task { await viewModel.deleteReceipt(r) }
                     deleteCandidate = nil
                 }
             }
-            Button("Abbrechen", role: .cancel) { deleteCandidate = nil }
+            Button("button.cancel", role: .cancel) { deleteCandidate = nil }
         }
     }
 }

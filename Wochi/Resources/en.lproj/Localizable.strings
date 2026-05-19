@@ -39,6 +39,7 @@
 // MARK: - Pantry
 "pantry.empty.title" = "Your pantry is empty";
 "pantry.empty.subtitle" = "Add your first item";
+"pantry.filter.all" = "All";
 "pantry.filter.expiring" = "Expiring";
 "pantry.filter.low" = "Running low";
 "pantry.quickaction.used" = "Used up";
@@ -193,3 +194,60 @@
 "alerts.purchased.yes" = "👍";
 "alerts.purchased.no" = "👎";
 "alerts.valid.until" = "until %@";
+
+// MARK: - Categories
+"category.produce" = "Produce";
+"category.dairy" = "Dairy";
+"category.meat" = "Meat & Fish";
+"category.bakery" = "Bread & Bakery";
+"category.frozen" = "Frozen";
+"category.beverages" = "Beverages";
+"category.snacks" = "Snacks & Sweets";
+"category.pantry" = "Pantry Staples";
+"category.cleaning" = "Cleaning";
+"category.hygiene" = "Hygiene";
+"category.household" = "Household";
+"category.baby" = "Baby";
+"category.pet" = "Pet";
+"category.other" = "Other";
+
+// MARK: - Units
+"unit.piece" = "pcs";
+"unit.kg" = "kg";
+"unit.g" = "g";
+"unit.liter" = "L";
+"unit.ml" = "ml";
+"unit.pack" = "pack";
+"unit.bottle" = "bottle";
+"unit.can" = "can";
+"unit.jar" = "jar";
+
+// MARK: - Receipt Review
+"receipt.review.title" = "Review Receipt";
+"receipt.review.rescan" = "Scan Again";
+"receipt.review.store" = "Store";
+"receipt.review.store.name" = "Store name";
+"receipt.review.date" = "Date";
+"receipt.review.purchase_date" = "Purchase date";
+"receipt.review.items" = "Items";
+"receipt.review.item.add" = "Add Item";
+"receipt.review.item.name" = "Item name";
+"receipt.review.item.quantity" = "Qty: %@";
+"receipt.review.item.price" = "Price (€)";
+"receipt.review.total" = "Total Amount";
+"receipt.review.scanned" = "Scanned";
+"receipt.review.items.sum" = "Items Total";
+"receipt.review.diff.warning" = "Diff >10%% – please verify items";
+"receipt.review.update_pantry.title" = "Update Pantry?";
+"receipt.review.update_pantry.message" = "Would you like to update your pantry with the items from this receipt?";
+"receipt.review.update_pantry.yes" = "Yes, Update Pantry";
+"receipt.review.update_pantry.no" = "No Thanks";
+
+// MARK: - Receipt History
+"receipt.history.title" = "Receipts";
+"receipt.history.delete.confirm" = "Delete Receipt?";
+
+// MARK: - Receipt Detail
+"receipt.detail.title" = "Receipt";
+"receipt.detail.total" = "Total";
+"receipt.detail.items" = "%d items";

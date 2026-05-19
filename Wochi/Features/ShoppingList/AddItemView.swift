@@ -22,6 +22,20 @@ struct AddItemView: View {
 
     private let units = ["Stück", "kg", "g", "Liter", "ml", "Packung", "Flasche", "Dose"]
 
+    private func unitDisplayName(_ unit: String) -> String {
+        let map: [String: String] = [
+            "Stück":   String(localized: "unit.piece"),
+            "kg":      String(localized: "unit.kg"),
+            "g":       String(localized: "unit.g"),
+            "Liter":   String(localized: "unit.liter"),
+            "ml":      String(localized: "unit.ml"),
+            "Packung": String(localized: "unit.pack"),
+            "Flasche": String(localized: "unit.bottle"),
+            "Dose":    String(localized: "unit.can"),
+        ]
+        return map[unit] ?? unit
+    }
+
     private let suggestions = [
         "Milch", "Brot", "Eier", "Butter", "Käse", "Joghurt",
         "Äpfel", "Bananen", "Tomaten", "Nudeln", "Reis", "Kaffee",
@@ -115,7 +129,7 @@ struct AddItemView: View {
 
             Picker("shopping.item.edit.unit", selection: $selectedUnit) {
                 ForEach(units, id: \.self) { unit in
-                    Text(unit).tag(unit)
+                    Text(unitDisplayName(unit)).tag(unit)
                 }
             }
         } header: {

@@ -7,14 +7,14 @@ struct ReceiptDetailView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Kassenbon") {
-                    LabeledContent("Geschäft", value: receipt.storeName)
-                    LabeledContent("Datum", value: receipt.purchaseDate.germanDateString)
-                    LabeledContent("Gesamt", value: receipt.totalAmount.eurFormatted)
-                    LabeledContent("Gescannt", value: receipt.scannedAt.germanDateString)
+                Section("receipt.detail.title") {
+                    LabeledContent(String(localized: "receipt.review.store"), value: receipt.storeName)
+                    LabeledContent(String(localized: "receipt.review.date"), value: receipt.purchaseDate.germanDateString)
+                    LabeledContent(String(localized: "receipt.detail.total"), value: receipt.totalAmount.eurFormatted)
+                    LabeledContent(String(localized: "receipt.review.scanned"), value: receipt.scannedAt.germanDateString)
                 }
 
-                Section("Artikel (\(receipt.items.count))") {
+                Section(String(format: String(localized: "receipt.detail.items"), receipt.items.count)) {
                     ForEach(receipt.items) { item in
                         HStack {
                             VStack(alignment: .leading) {
@@ -41,11 +41,11 @@ struct ReceiptDetailView: View {
                     }
                 }
             }
-            .navigationTitle("Kassenbon")
+            .navigationTitle("receipt.detail.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Fertig") { dismiss() }
+                    Button("button.done") { dismiss() }
                 }
             }
         }

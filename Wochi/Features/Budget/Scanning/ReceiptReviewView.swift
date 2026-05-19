@@ -54,7 +54,7 @@ struct ReceiptReviewView: View {
         if let chain = selectedChain, chain != .other {
             return chain.rawValue
         }
-        return customStoreName.isEmpty ? "Sonstiges" : customStoreName
+        return customStoreName.isEmpty ? String(localized: "category.other") : customStoreName
     }
 
     // MARK: - Body
@@ -67,37 +67,37 @@ struct ReceiptReviewView: View {
                 itemsSection
                 totalSection
             }
-            .navigationTitle(LocalizedStringKey("Kassenbon prüfen"))
+            .navigationTitle("receipt.review.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Erneut scannen") { dismiss() }
+                    Button("receipt.review.rescan") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     if isSaving {
                         ProgressView()
                     } else {
-                        Button("Bestätigen") {
+                        Button("button.confirm") {
                             Task { await saveReceipt() }
                         }
                         .fontWeight(.semibold)
                     }
                 }
             }
-            .alert("Fehler", isPresented: $showErrorAlert, presenting: saveError) { _ in
+            .alert("error.generic", isPresented: $showErrorAlert, presenting: saveError) { _ in
                 Button("OK", role: .cancel) {}
             } message: { error in
                 Text(error.localizedDescription)
             }
             .confirmationDialog(
-                "Vorrat aktualisieren?",
+                "receipt.review.update_pantry.title",
                 isPresented: $showPantryPrompt,
                 titleVisibility: .visible
             ) {
-                Button("Ja, Vorrat aktualisieren") { onDismiss() }
-                Button("Nein, danke") { onDismiss() }
+                Button("receipt.review.update_pantry.yes") { onDismiss() }
+                Button("receipt.review.update_pantry.no") { onDismiss() }
             } message: {
-                Text("Möchtest du deinen Vorrat mit den Artikeln aus diesem Bon aktualisieren?")
+                Text("receipt.review.update_pantry.message")
             }
         }
     }
@@ -105,23 +105,23 @@ struct ReceiptReviewView: View {
     // MARK: - Sections
 
     private var storeSection: some View {
-        Section(header: Text("Geschäft")) {
+        Section(header: Text("receipt.review.store")) {
             Picker("Kette", selection: $selectedChain) {
-                Text("Sonstiges").tag(StoreChain?.none)
+                Text("category.other").tag(StoreChain?.none)
                 ForEach(StoreChain.allCases, id: \.self) { chain in
                     Text(chain.rawValue).tag(Optional(chain))
                 }
             }
             if selectedChain == nil || selectedChain == .other {
-                TextField("Geschäftsname", text: $customStoreName)
+                TextField("receipt.review.store.name", text: $customStoreName)
             }
         }
     }
 
     private var dateSection: some View {
-        Section(header: Text("Datum")) {
+        Section(header: Text("receipt.review.date")) {
             DatePicker(
-                "Einkaufsdatum",
+                "receipt.review.purchase_date",
                 selection: $purchaseDate,
                 displayedComponents: .date
             )
@@ -130,7 +130,7 @@ struct ReceiptReviewView: View {
     }
 
     private var itemsSection: some View {
-        Section(header: Text("Artikel")) {
+        Section(header: Text("receipt.review.items")) {
             ForEach($editableItems) { $item in
                 ReceiptItemRow(item: $item)
             }
@@ -141,7 +141,7 @@ struct ReceiptReviewView: View {
             Button {
                 showAddItem = true
             } label: {
-                Label("Artikel hinzufügen", systemImage: "plus.circle")
+                Label("receipt.review.item.add", systemImage: "plus.circle")
             }
         }
         .sheet(isPresented: $showAddItem) {
@@ -152,22 +152,22 @@ struct ReceiptReviewView: View {
     }
 
     private var totalSection: some View {
-        Section(header: Text("Gesamtbetrag")) {
+        Section(header: Text("receipt.review.total")) {
             HStack {
-                Text("Gescannt")
+                Text("receipt.review.scanned")
                 Spacer()
                 Text(parsedTotal, format: .currency(code: "EUR"))
                     .foregroundStyle(.secondary)
             }
             HStack {
-                Text("Summe Artikel")
+                Text("receipt.review.items.sum")
                 Spacer()
                 Text(itemsSum, format: .currency(code: "EUR"))
                     .foregroundStyle(totalMismatch ? .orange : .primary)
             }
             if totalMismatch {
                 Label(
-                    "Differenz >10% – bitte Artikel prüfen",
+                    "receipt.review.diff.warning",
                     systemImage: "exclamationmark.triangle"
                 )
                 .font(.caption)
@@ -248,7 +248,7 @@ private struct ReceiptItemRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            TextField("Artikelname", text: $item.name)
+            TextField("receipt.review.item.name", text: $item.name)
                 .font(.body)
 
             HStack(spacing: 12) {
@@ -257,12 +257,12 @@ private struct ReceiptItemRow: View {
                     in: 0.5...99,
                     step: 0.5
                 ) {
-                    Text("Menge: \(item.quantity.formatted(.number.precision(.fractionLength(0...1))))")
+                    Text(String(format: String(localized: "receipt.review.item.quantity"), item.quantity.formatted(.number.precision(.fractionLength(0...1)))))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
 
-                TextField("Preis", text: $priceText)
+                TextField("receipt.review.item.price", text: $priceText)
                     .keyboardType(.decimalPad)
                     .font(.caption)
                     .frame(width: 70)
@@ -300,33 +300,33 @@ private struct AddReceiptItemSheet: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Artikelname", text: $newItem.name)
+                    TextField("receipt.review.item.name", text: $newItem.name)
                     Stepper(
-                        "Menge: \(newItem.quantity.formatted(.number.precision(.fractionLength(0...1))))",
+                        String(format: String(localized: "receipt.review.item.quantity"), newItem.quantity.formatted(.number.precision(.fractionLength(0...1)))),
                         value: $newItem.quantity,
                         in: 0.5...99,
                         step: 0.5
                     )
                     HStack {
-                        TextField("Preis", text: $priceText)
+                        TextField("receipt.review.item.price", text: $priceText)
                             .keyboardType(.decimalPad)
                         Text("€")
                     }
-                    Picker("Kategorie", selection: $newItem.category) {
+                    Picker("shopping.item.edit.category", selection: $newItem.category) {
                         ForEach(ItemCategory.allCases, id: \.self) { cat in
-                            Text(cat.rawValue).tag(cat)
+                            Text(cat.displayName).tag(cat)
                         }
                     }
                 }
             }
-            .navigationTitle("Artikel hinzufügen")
+            .navigationTitle("receipt.review.item.add")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") { dismiss() }
+                    Button("button.cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Hinzufügen") {
+                    Button("button.add") {
                         let normalized = priceText.replacingOccurrences(of: ",", with: ".")
                         if let price = Double(normalized) {
                             newItem.totalPrice = price

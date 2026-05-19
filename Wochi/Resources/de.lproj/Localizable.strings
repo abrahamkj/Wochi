@@ -39,6 +39,7 @@
 // MARK: - Pantry
 "pantry.empty.title" = "Dein Vorrat ist leer";
 "pantry.empty.subtitle" = "Füge deinen ersten Artikel hinzu";
+"pantry.filter.all" = "Alle";
 "pantry.filter.expiring" = "Ablaufend";
 "pantry.filter.low" = "Wenig vorrätig";
 "pantry.quickaction.used" = "Aufgebraucht";
@@ -193,3 +194,60 @@
 "alerts.purchased.yes" = "👍";
 "alerts.purchased.no" = "👎";
 "alerts.valid.until" = "bis %@";
+
+// MARK: - Categories
+"category.produce" = "Obst & Gemüse";
+"category.dairy" = "Milchprodukte";
+"category.meat" = "Fleisch & Fisch";
+"category.bakery" = "Brot & Backwaren";
+"category.frozen" = "Tiefkühl";
+"category.beverages" = "Getränke";
+"category.snacks" = "Snacks & Süßes";
+"category.pantry" = "Vorrat";
+"category.cleaning" = "Putzmittel";
+"category.hygiene" = "Hygiene";
+"category.household" = "Haushalt";
+"category.baby" = "Baby";
+"category.pet" = "Tier";
+"category.other" = "Sonstiges";
+
+// MARK: - Units
+"unit.piece" = "Stück";
+"unit.kg" = "kg";
+"unit.g" = "g";
+"unit.liter" = "Liter";
+"unit.ml" = "ml";
+"unit.pack" = "Packung";
+"unit.bottle" = "Flasche";
+"unit.can" = "Dose";
+"unit.jar" = "Glas";
+
+// MARK: - Receipt Review
+"receipt.review.title" = "Kassenbon prüfen";
+"receipt.review.rescan" = "Erneut scannen";
+"receipt.review.update_pantry.title" = "Vorrat aktualisieren?";
+"receipt.review.update_pantry.yes" = "Ja, Vorrat aktualisieren";
+"receipt.review.update_pantry.no" = "Nein, danke";
+"receipt.review.update_pantry.message" = "Möchtest du deinen Vorrat mit den Artikeln aus diesem Bon aktualisieren?";
+"receipt.review.store" = "Geschäft";
+"receipt.review.store.name" = "Geschäftsname";
+"receipt.review.date" = "Datum";
+"receipt.review.purchase_date" = "Einkaufsdatum";
+"receipt.review.items" = "Artikel";
+"receipt.review.item.add" = "Artikel hinzufügen";
+"receipt.review.total" = "Gesamtbetrag";
+"receipt.review.scanned" = "Gescannt";
+"receipt.review.items.sum" = "Summe Artikel";
+"receipt.review.diff.warning" = "Differenz >10%% – bitte Artikel prüfen";
+"receipt.review.item.name" = "Artikelname";
+"receipt.review.item.quantity" = "Menge: %@";
+"receipt.review.item.price" = "Preis (€)";
+
+// MARK: - Receipt History
+"receipt.history.title" = "Kassenbons";
+"receipt.history.delete.confirm" = "Kassenbon löschen?";
+
+// MARK: - Receipt Detail
+"receipt.detail.title" = "Kassenbon";
+"receipt.detail.total" = "Gesamt";
+"receipt.detail.items" = "%d Artikel";

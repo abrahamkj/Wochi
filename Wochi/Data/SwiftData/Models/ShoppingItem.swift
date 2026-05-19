@@ -67,6 +67,25 @@ enum ItemCategory: String, Codable, CaseIterable {
     case pet        = "Tier"
     case other      = "Sonstiges"
 
+    var displayName: String {
+        switch self {
+        case .fruit:     return String(localized: "category.produce")
+        case .dairy:     return String(localized: "category.dairy")
+        case .meat:      return String(localized: "category.meat")
+        case .bakery:    return String(localized: "category.bakery")
+        case .frozen:    return String(localized: "category.frozen")
+        case .drinks:    return String(localized: "category.beverages")
+        case .snacks:    return String(localized: "category.snacks")
+        case .pantryDry: return String(localized: "category.pantry")
+        case .cleaning:  return String(localized: "category.cleaning")
+        case .hygiene:   return String(localized: "category.hygiene")
+        case .household: return String(localized: "category.household")
+        case .baby:      return String(localized: "category.baby")
+        case .pet:       return String(localized: "category.pet")
+        case .other:     return String(localized: "category.other")
+        }
+    }
+
     var sfSymbol: String {
         switch self {
         case .fruit:     return "leaf"

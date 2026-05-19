@@ -7,6 +7,14 @@ final class PantryViewModel: ObservableObject {
         case all        = "Alle"
         case expiring   = "Ablaufend"
         case lowStock   = "Wenig vorrätig"
+
+        var label: String {
+            switch self {
+            case .all:      return String(localized: "pantry.filter.all")
+            case .expiring: return String(localized: "pantry.filter.expiring")
+            case .lowStock: return String(localized: "pantry.filter.low")
+            }
+        }
     }
 
     @Published var items: [PantryItem] = []

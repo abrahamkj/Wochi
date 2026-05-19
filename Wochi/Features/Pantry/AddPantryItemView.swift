@@ -15,6 +15,21 @@ struct AddPantryItemView: View {
 
     private let units = ["Stück", "kg", "g", "Liter", "ml", "Packung", "Flasche", "Dose", "Glas"]
 
+    private func unitDisplayName(_ unit: String) -> String {
+        let map: [String: String] = [
+            "Stück":   String(localized: "unit.piece"),
+            "kg":      String(localized: "unit.kg"),
+            "g":       String(localized: "unit.g"),
+            "Liter":   String(localized: "unit.liter"),
+            "ml":      String(localized: "unit.ml"),
+            "Packung": String(localized: "unit.pack"),
+            "Flasche": String(localized: "unit.bottle"),
+            "Dose":    String(localized: "unit.can"),
+            "Glas":    String(localized: "unit.jar"),
+        ]
+        return map[unit] ?? unit
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -27,11 +42,13 @@ struct AddPantryItemView: View {
                     }
                     Picker("pantry.item.edit.unit", selection: $unit) {
                         Text("–").tag("")
-                        ForEach(units, id: \.self) { Text($0).tag($0) }
+                        ForEach(units, id: \.self) { u in
+                            Text(unitDisplayName(u)).tag(u)
+                        }
                     }
                     Picker("pantry.item.edit.category", selection: $category) {
                         ForEach(ItemCategory.allCases, id: \.self) { cat in
-                            Label(cat.rawValue, systemImage: cat.sfSymbol).tag(cat)
+                            Label(cat.displayName, systemImage: cat.sfSymbol).tag(cat)
                         }
                     }
                 }
