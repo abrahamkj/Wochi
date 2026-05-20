@@ -8,7 +8,7 @@ final class HouseholdMember {
     var displayName: String = ""
     var email: String?
     var avatarColor: String = "#4ade80"
-    var role: MemberRole = .member
+    var role: MemberRole = MemberRole.member
     var joinedAt: Date = Date()
     var isCurrentDevice: Bool = false
 

@@ -8,8 +8,8 @@ final class ShoppingItem {
     var quantity: Double = 1
     var unit: String?
     var preferredBrand: String?
-    var brandTier: BrandPreference = .acceptable
-    var category: ItemCategory = .other
+    var brandTier: BrandPreference = BrandPreference.acceptable
+    var category: ItemCategory = ItemCategory.other
     var note: String?
     var estimatedPrice: Double?
     var suggestedStore: String?
@@ -19,7 +19,7 @@ final class ShoppingItem {
     var addedAt: Date = Date()
     var addedByMemberID: UUID?
     var checkedByMemberID: UUID?
-    var sourceType: ItemSourceType = .manual
+    var sourceType: ItemSourceType = ItemSourceType.manual
 
     var list: ShoppingList?
 

@@ -4,7 +4,7 @@ import SwiftData
 @Model
 final class PreferredStore {
     var id: UUID = UUID()
-    var storeChain: StoreChain = .other
+    var storeChain: StoreChain = StoreChain.other
     var customName: String?
     var address: String?
     var latitude: Double?

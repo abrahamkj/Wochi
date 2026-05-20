@@ -7,7 +7,7 @@ final class PantryItem {
     var name: String = ""
     var quantity: Double = 1
     var unit: String?
-    var category: ItemCategory = .other
+    var category: ItemCategory = ItemCategory.other
     var brand: String?
     var barcode: String?
     var expiryDate: Date?

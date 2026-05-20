@@ -11,7 +11,7 @@ final class ReceiptItem {
     var unit: String?
     var unitPrice: Double = 0
     var totalPrice: Double = 0
-    var category: ItemCategory = .other
+    var category: ItemCategory = ItemCategory.other
     var isDiscounted: Bool = false
     var originalPrice: Double?
 

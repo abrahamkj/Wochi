@@ -6,8 +6,8 @@ final class SubstitutionAlert {
     var id: UUID = UUID()
     var productName: String = ""
     var preferredBrand: String?
-    var currentStore: StoreChain = .other
-    var dealStore: StoreChain = .other
+    var currentStore: StoreChain = StoreChain.other
+    var dealStore: StoreChain = StoreChain.other
     var regularPrice: Double = 0
     var dealPrice: Double = 0
     var savingsPercent: Double = 0
