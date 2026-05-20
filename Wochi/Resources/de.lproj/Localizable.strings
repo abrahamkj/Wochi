@@ -27,6 +27,8 @@
 // MARK: - Household
 "household.create.title" = "Neuen Haushalt erstellen";
 "household.join.title" = "Einladung annehmen";
+"household.join.invite.subtitle" = "Du wurdest eingeladen, einem Haushalt beizutreten. Akzeptiere, um Listen und Vorrat mit deinen Haushaltsmitgliedern zu teilen.";
+"household.join.confirm" = "Akzeptieren & Beitreten";
 "household.name.placeholder" = "Name deines Haushalts";
 
 // MARK: - Shopping

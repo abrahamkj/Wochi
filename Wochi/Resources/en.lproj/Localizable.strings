@@ -27,6 +27,8 @@
 // MARK: - Household
 "household.create.title" = "Create new household";
 "household.join.title" = "Accept invitation";
+"household.join.invite.subtitle" = "You've been invited to join a household. Accept to start sharing lists and pantry with your household members.";
+"household.join.confirm" = "Accept & Join";
 "household.name.placeholder" = "Your household name";
 
 // MARK: - Shopping

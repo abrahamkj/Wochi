@@ -8,6 +8,8 @@ final class AppState: ObservableObject {
     @Published var currentHousehold: Household?
     @Published var currentMember: HouseholdMember?
     @Published var isOffline: Bool = false
+    /// Set when the app is opened via a CKShare URL so any screen can present the join flow.
+    @Published var incomingShareURL: URL? = nil
 }
 
 // MARK: - App Entry Point
@@ -39,8 +41,10 @@ struct WochiApp: App {
             }
             .environmentObject(appState)
             .onOpenURL { url in
-                Task {
-                    await HouseholdShareManager.shared.handleIncomingURL(url)
+                if HouseholdShareManager.shared.isCloudKitShareURL(url) {
+                    appState.incomingShareURL = url
+                } else {
+                    Task { await HouseholdShareManager.shared.handleIncomingURL(url) }
                 }
             }
         }

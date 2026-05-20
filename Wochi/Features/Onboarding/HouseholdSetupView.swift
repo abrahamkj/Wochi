@@ -48,45 +48,47 @@ private final class HouseholdSetupViewModel: ObservableObject {
             return
         }
 
-        // Parse UUID and optional name from:
-        //   wochi://invite/<uuid>?name=<encoded>
-        //   wochi://invite/<uuid>
-        //   wochi://invite?household=<uuid>&name=<encoded>
-        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-        let queryItems = components?.queryItems ?? []
-
-        let uuidString: String?
-        if let item = queryItems.first(where: { $0.name == "household" }) {
-            uuidString = item.value
-        } else {
-            let last = url.lastPathComponent
-            uuidString = last.isEmpty ? nil : last
-        }
-
-        guard let idString = uuidString, let householdID = UUID(uuidString: idString) else {
-            errorMessage = WochiError.invalidInviteLink.localizedDescription
-            showError = true
-            return
-        }
-
-        let householdName = queryItems.first(where: { $0.name == "name" })?.value ?? "Shared Household"
-
         isLoading = true
         defer { isLoading = false }
 
         do {
-            // If the household already exists locally (same device / future CloudKit sync), use it.
-            // Otherwise create a local record with the shared UUID so the user can start using the app.
             let household: Household
-            if let existing = try await repository.fetchHousehold(byID: householdID) {
-                household = existing
+
+            if HouseholdShareManager.shared.isCloudKitShareURL(url) {
+                // Real CKShare — accept via CloudKit then create/find local record
+                let (householdID, name) = try await HouseholdShareManager.shared.acceptShare(url: url)
+                if let existing = try await repository.fetchHousehold(byID: householdID) {
+                    household = existing
+                } else {
+                    household = try await repository.createHousehold(name: name, id: householdID)
+                    if let member = appState.currentMember {
+                        household.members = (household.members ?? []) + [member]
+                    }
+                }
             } else {
-                household = try await repository.createHousehold(name: householdName, id: householdID)
-                if let member = appState.currentMember {
-                    household.members = (household.members ?? []) + [member]
-                    member.household = household
+                // wochi://invite/<uuid>?name=<encoded> deep-link
+                let queryItems = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+                let uuidString: String?
+                if let item = queryItems.first(where: { $0.name == "household" }) {
+                    uuidString = item.value
+                } else {
+                    let last = url.lastPathComponent
+                    uuidString = last.isEmpty ? nil : last
+                }
+                guard let idStr = uuidString, let householdID = UUID(uuidString: idStr) else {
+                    throw WochiError.invalidInviteLink
+                }
+                let name = queryItems.first(where: { $0.name == "name" })?.value ?? "Shared Household"
+                if let existing = try await repository.fetchHousehold(byID: householdID) {
+                    household = existing
+                } else {
+                    household = try await repository.createHousehold(name: name, id: householdID)
+                    if let member = appState.currentMember {
+                        household.members = (household.members ?? []) + [member]
+                    }
                 }
             }
+
             UserDefaults.standard.set(household.id.uuidString, forKey: Constants.UserDefaults.householdID)
             appState.currentHousehold = household
         } catch {

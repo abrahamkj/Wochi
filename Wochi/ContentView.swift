@@ -61,6 +61,15 @@ struct ContentView: View {
             let repo = HouseholdRepository(context: context)
             appState.currentHousehold = try? await repo.fetchCurrentHousehold()
         }
+        .sheet(isPresented: Binding(
+            get: { appState.incomingShareURL != nil },
+            set: { if !$0 { appState.incomingShareURL = nil } }
+        )) {
+            if let url = appState.incomingShareURL {
+                ShareAcceptView(shareURL: url)
+                    .environmentObject(appState)
+            }
+        }
     }
 }
 

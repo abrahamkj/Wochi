@@ -56,7 +56,7 @@ struct PantryView: View {
                     Button {
                         viewModel.filter = f
                     } label: {
-                        Text(f.rawValue)
+                        Text(verbatim: f.label)
                             .font(.subheadline)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
@@ -77,7 +77,7 @@ struct PantryView: View {
                 .listRowBackground(Color.clear)
 
             ForEach(viewModel.groupedItems, id: \.category) { group in
-                Section(group.category.rawValue) {
+                Section(group.category.displayName) {
                     ForEach(group.items) { item in
                         PantryItemRow(item: item)
                             .contentShape(Rectangle())

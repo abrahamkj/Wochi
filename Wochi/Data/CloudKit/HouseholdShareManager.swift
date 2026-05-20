@@ -1,5 +1,6 @@
 import CloudKit
 import Foundation
+import SwiftData
 
 // MARK: - HouseholdShareManager
 
@@ -14,149 +15,171 @@ final class HouseholdShareManager {
 
     private let container = CKContainer(identifier: Constants.App.cloudKitContainerID)
     private var privateDB: CKDatabase { container.privateCloudDatabase }
-
-    // MARK: Init
+    private var sharedDB: CKDatabase  { container.sharedCloudDatabase }
 
     private init() {}
 
-    // MARK: Public API
+    // MARK: - Zone
 
-    /// Creates a `CKShare` for the given household and returns its share URL.
-    ///
-    /// Falls back to a placeholder wochi:// URL if CloudKit is unavailable.
+    /// Creates (or re-uses) a custom zone named "wochi-<householdUUID>" in the owner's private DB.
+    private func ensureZone(for householdID: UUID) async throws -> CKRecordZone {
+        let zoneID = CKRecordZone.ID(
+            zoneName: "wochi-\(householdID.uuidString)",
+            ownerName: CKCurrentUserDefaultName
+        )
+        return try await privateDB.save(CKRecordZone(zoneID: zoneID))
+    }
+
+    // MARK: - Share creation
+
+    /// Creates a CloudKit zone + CKShare for the household and returns the share URL.
+    /// The share URL is a real `https://www.icloud.com/share/...` link that any Apple ID can accept.
     func createShareURL(for household: Household) async throws -> URL {
-        // Build a root record representing the household so we can attach a share.
-        let recordID = CKRecord.ID(recordName: household.id.uuidString)
-        let rootRecord = CKRecord(recordType: "Household", recordID: recordID)
-        rootRecord["name"] = household.name as CKRecordValue
+        let zone = try await ensureZone(for: household.id)
 
-        let share = CKShare(rootRecord: rootRecord)
+        let recordID = CKRecord.ID(
+            recordName: "household-\(household.id.uuidString)",
+            zoneID: zone.zoneID
+        )
+        let record = CKRecord(recordType: "WH_Household", recordID: recordID)
+        record["id"]   = household.id.uuidString as CKRecordValue
+        record["name"] = household.name as CKRecordValue
+
+        let share = CKShare(rootRecord: record)
         share[CKShare.SystemFieldKey.title] = household.name as CKRecordValue
         share.publicPermission = .none
 
-        do {
-            let operation = CKModifyRecordsOperation(
-                recordsToSave: [rootRecord, share],
-                recordIDsToDelete: nil
-            )
-            operation.isAtomic = true
+        let op = CKModifyRecordsOperation(recordsToSave: [record, share], recordIDsToDelete: nil)
+        op.isAtomic = true
 
-            let (savedRecords, deletedIDs) = try await withCheckedThrowingContinuation {
-                (continuation: CheckedContinuation<([CKRecord], [CKRecord.ID]), Error>) in
-                // Use the modifyRecordsResultBlock to get the final result of the operation.
-                // Use the Result-based completion form (match other usages in this file).
-                operation.modifyRecordsResultBlock = { result in
-                    switch result {
-                    case .success:
-                        continuation.resume(returning: ([], []))
-                    case .failure(let error):
-                        continuation.resume(throwing: error)
-                    }
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            op.modifyRecordsResultBlock = { result in
+                switch result {
+                case .success:           cont.resume()
+                case .failure(let err):  cont.resume(throwing: err)
                 }
-                privateDB.add(operation)
             }
-            _ = (savedRecords, deletedIDs)
-
-            if let shareURL = share.url {
-                return shareURL
-            }
-        } catch {
-            // Graceful fallback – return a placeholder wochi:// URL so callers
-            // can still display something meaningful without crashing.
-            return placeholderURL(for: household)
+            privateDB.add(op)
         }
 
-        return placeholderURL(for: household)
+        guard let url = share.url else {
+            throw WochiError.cloudKitSyncFailed(
+                underlying: NSError(
+                    domain: "HouseholdShareManager", code: -1,
+                    userInfo: [NSLocalizedDescriptionKey: "CloudKit did not return a share URL"]
+                )
+            )
+        }
+        return url
     }
 
-    /// Handles an incoming URL from a Universal Link or custom wochi:// scheme.
-    ///
-    /// Posts a `Notification` named `"WochiInviteReceived"` with the URL in `userInfo`.
+    // MARK: - Share detection
+
+    /// Returns true if `url` is a real CloudKit share URL (icloud.com/share/…)
+    /// as opposed to our own wochi:// deep-link.
+    func isCloudKitShareURL(_ url: URL) -> Bool {
+        guard let host = url.host else { return false }
+        return host.hasSuffix("icloud.com") && url.path.hasPrefix("/share/")
+    }
+
+    // MARK: - Share acceptance
+
+    /// Accepts a CloudKit share URL.  Returns the household (id, name) from the shared record
+    /// so the caller can create a local SwiftData copy.
+    func acceptShare(url: URL) async throws -> (id: UUID, name: String) {
+        // 1. Fetch metadata
+        let metadata: CKShare.Metadata = try await withCheckedThrowingContinuation { cont in
+            container.fetchShareMetadata(url: url) { metadata, error in
+                if let m = metadata {
+                    cont.resume(returning: m)
+                } else {
+                    cont.resume(throwing: error ?? WochiError.invalidInviteLink)
+                }
+            }
+        }
+
+        // 2. Accept the share
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            container.accept(metadata) { _, error in
+                if let error = error {
+                    cont.resume(throwing: error)
+                } else {
+                    cont.resume()
+                }
+            }
+        }
+
+        // 3. Parse household UUID from zone name "wochi-<UUID>"
+        let zoneName = metadata.share.recordID.zoneID.zoneName
+        guard zoneName.hasPrefix("wochi-"),
+              let householdID = UUID(uuidString: String(zoneName.dropFirst("wochi-".count)))
+        else { throw WochiError.invalidInviteLink }
+
+        // 4. Fetch the WH_Household record from the shared database
+        let ownerName = metadata.ownerIdentity.userRecordID?.recordName ?? CKCurrentUserDefaultName
+        let sharedZoneID = CKRecordZone.ID(zoneName: zoneName, ownerName: ownerName)
+        let recordID = CKRecord.ID(
+            recordName: "household-\(householdID.uuidString)",
+            zoneID: sharedZoneID
+        )
+
+        do {
+            let record = try await sharedDB.record(for: recordID)
+            let name = record["name"] as? String ?? "Shared Household"
+            return (id: householdID, name: name)
+        } catch {
+            // Record may not be visible immediately after acceptance — return minimal info
+            return (id: householdID, name: "Shared Household")
+        }
+    }
+
+    // MARK: - Leave share
+
+    func leaveShare(for household: Household) async throws {
+        let zoneID = CKRecordZone.ID(
+            zoneName: "wochi-\(household.id.uuidString)",
+            ownerName: CKCurrentUserDefaultName
+        )
+        let recordID = CKRecord.ID(
+            recordName: "household-\(household.id.uuidString)",
+            zoneID: zoneID
+        )
+
+        guard let shareRef = try? await privateDB.record(for: recordID).share else { return }
+        let shareRecord: CKShare = try await withCheckedThrowingContinuation { cont in
+            privateDB.fetch(withRecordID: shareRef.recordID) { record, error in
+                if let share = record as? CKShare {
+                    cont.resume(returning: share)
+                } else {
+                    cont.resume(throwing: error ?? WochiError.cloudKitSyncFailed(
+                        underlying: NSError(domain: "HouseholdShareManager", code: -2)
+                    ))
+                }
+            }
+        }
+
+        let currentParticipant = shareRecord.participants.first { $0.role != .owner }
+        if let p = currentParticipant { shareRecord.removeParticipant(p) }
+
+        let saveOp = CKModifyRecordsOperation(recordsToSave: [shareRecord], recordIDsToDelete: nil)
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            saveOp.modifyRecordsResultBlock = { result in
+                switch result {
+                case .success:          cont.resume()
+                case .failure(let e):   cont.resume(throwing: e)
+                }
+            }
+            privateDB.add(saveOp)
+        }
+    }
+
+    // MARK: - Handle incoming URL (legacy deep-link dispatch)
+
     func handleIncomingURL(_ url: URL) async {
         NotificationCenter.default.post(
             name: Notification.Name("WochiInviteReceived"),
             object: nil,
             userInfo: ["url": url]
         )
-    }
-
-    /// Removes the current device user from the `CKShare` participants for the given household.
-    func leaveShare(for household: Household) async throws {
-        let recordID = CKRecord.ID(recordName: household.id.uuidString)
-
-        // Fetch the existing share for this record.
-        let fetchOperation = CKFetchRecordsOperation(recordIDs: [recordID])
-        fetchOperation.desiredKeys = nil
-
-        let records: [CKRecord.ID: CKRecord] = try await withCheckedThrowingContinuation { continuation in
-            var fetched: [CKRecord.ID: CKRecord] = [:]
-            fetchOperation.perRecordResultBlock = { recordID, result in
-                if case .success(let record) = result {
-                    fetched[recordID] = record
-                }
-            }
-            fetchOperation.fetchRecordsResultBlock = { result in
-                switch result {
-                case .success:
-                    continuation.resume(returning: fetched)
-                case .failure(let error):
-                    continuation.resume(throwing: error)
-                }
-            }
-            privateDB.add(fetchOperation)
-        }
-
-        guard let rootRecord = records[recordID],
-              let shareRef = rootRecord.share else {
-            // Nothing to leave – share may not exist yet.
-            return
-        }
-
-        // Fetch the share record itself.
-        let shareRecord: CKShare = try await withCheckedThrowingContinuation { continuation in
-            privateDB.fetch(withRecordID: shareRef.recordID) { record, error in
-                if let share = record as? CKShare {
-                    continuation.resume(returning: share)
-                } else {
-                    continuation.resume(throwing: error ?? WochiError.cloudKitSyncFailed(
-                        underlying: NSError(domain: "HouseholdShareManager", code: -1))
-                    )
-                }
-            }
-        }
-
-        // Find the current user participant and remove them.
-        let currentParticipant = shareRecord.participants.first { $0.permission != .readWrite || $0.role == .owner }
-        if let participant = currentParticipant {
-            shareRecord.removeParticipant(participant)
-        }
-
-        let saveOperation = CKModifyRecordsOperation(
-            recordsToSave: [shareRecord],
-            recordIDsToDelete: nil
-        )
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            saveOperation.modifyRecordsResultBlock = { result in
-                switch result {
-                case .success:
-                    continuation.resume()
-                case .failure(let error):
-                    continuation.resume(throwing: error)
-                }
-            }
-            privateDB.add(saveOperation)
-        }
-    }
-
-    // MARK: Private helpers
-
-    private func placeholderURL(for household: Household) -> URL {
-        var components = URLComponents()
-        components.scheme = Constants.App.urlScheme
-        components.host = "invite"
-        components.queryItems = [
-            URLQueryItem(name: "household", value: household.id.uuidString)
-        ]
-        return components.url ?? URL(string: "\(Constants.App.urlScheme)://invite")!
     }
 }
