@@ -52,6 +52,16 @@ final class HouseholdShareManager {
         let op = CKModifyRecordsOperation(recordsToSave: [record, share], recordIDsToDelete: nil)
         op.isAtomic = true
 
+        // Capture the server-confirmed share from perRecordSaveBlock.
+        // CKShare.url is a locally-predicted URL until CloudKit confirms the save —
+        // using the server-returned record guarantees the short-token actually exists.
+        var confirmedShareURL: URL?
+        op.perRecordSaveBlock = { _, result in
+            if case .success(let saved) = result, let s = saved as? CKShare {
+                confirmedShareURL = s.url
+            }
+        }
+
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
             op.modifyRecordsResultBlock = { result in
                 switch result {
@@ -62,11 +72,11 @@ final class HouseholdShareManager {
             privateDB.add(op)
         }
 
-        guard let url = share.url else {
+        guard let url = confirmedShareURL else {
             throw WochiError.cloudKitSyncFailed(
                 underlying: NSError(
                     domain: "HouseholdShareManager", code: -1,
-                    userInfo: [NSLocalizedDescriptionKey: "CloudKit did not return a share URL"]
+                    userInfo: [NSLocalizedDescriptionKey: "CloudKit did not confirm the share URL"]
                 )
             )
         }
