@@ -36,6 +36,7 @@
 		71FD146361C4046655596291 /* SubstitutionAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43884894FFB37138567A13AF /* SubstitutionAlert.swift */; };
 		72092B2B4EE8FBFF9A364107 /* CategoryBreakdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AE2D7E6B1441830FFBA9FD0 /* CategoryBreakdownView.swift */; };
 		7AA1A6CBE0A124620D5E54FD /* HouseholdSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBF0D377C545EA5C3C7435BD /* HouseholdSetupView.swift */; };
+		A1B2C3D4E5F6A1B2C3D4E5F6 /* ShareAcceptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6E5D4C3B2A1F6E5D4C3B2A1 /* ShareAcceptView.swift */; };
 		7E414BF89907C79AF608E478 /* AlertsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 264EC1FDBE41FBD303E5963A /* AlertsViewModel.swift */; };
 		7E53D1578A6AE1104CC518D9 /* SiriShortcutsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3CB944F80789895DFF83782 /* SiriShortcutsView.swift */; };
 		7F20748081B739BC67EF22B7 /* Double+Currency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B49CA774CB3F8BA3B521643 /* Double+Currency.swift */; };
@@ -162,6 +163,7 @@
 		E3C8D1E428734614285F11A5 /* Household.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Household.swift; sourceTree = "<group>"; };
 		E3CB944F80789895DFF83782 /* SiriShortcutsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiriShortcutsView.swift; sourceTree = "<group>"; };
 		EBF0D377C545EA5C3C7435BD /* HouseholdSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdSetupView.swift; sourceTree = "<group>"; };
+		F6E5D4C3B2A1F6E5D4C3B2A1 /* ShareAcceptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareAcceptView.swift; sourceTree = "<group>"; };
 		F255DB6DA06C8749476D9FCD /* ReceiptReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptReviewView.swift; sourceTree = "<group>"; };
 		F31B695B5643A66584446093 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F4C356AC2FBB1835004AB806 /* AuthenticationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AuthenticationServices.framework; path = System/Library/Frameworks/AuthenticationServices.framework; sourceTree = SDKROOT; };
@@ -287,6 +289,7 @@
 			isa = PBXGroup;
 			children = (
 				EBF0D377C545EA5C3C7435BD /* HouseholdSetupView.swift */,
+				F6E5D4C3B2A1F6E5D4C3B2A1 /* ShareAcceptView.swift */,
 				FF14B60048B7DCCD2F48739A /* OnboardingView.swift */,
 				7389CEC177E142EDA261A26C /* SignInView.swift */,
 			);
@@ -625,6 +628,7 @@
 				B1A8EF733E49788C80D38341 /* HouseholdMember.swift in Sources */,
 				F5FD38FD9F5B484B46C48EDC /* HouseholdRepository.swift in Sources */,
 				7AA1A6CBE0A124620D5E54FD /* HouseholdSetupView.swift in Sources */,
+				A1B2C3D4E5F6A1B2C3D4E5F6 /* ShareAcceptView.swift in Sources */,
 				645C0517DF01C178E9C80ACF /* HouseholdShareManager.swift in Sources */,
 				E9469D7675CA7B7774626E15 /* MemberAvatarView.swift in Sources */,
 				B5AD31B4BC011EE341FCF51E /* MemberBreakdownView.swift in Sources */,
