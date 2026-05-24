@@ -56,6 +56,7 @@ final class HouseholdShareManager {
 
         // If the household record already has a share, return the existing URL
         // and re-push data so the invited member gets the latest snapshot.
+        // No propagation wait needed here — the share already exists.
         if let existing = try? await privateDB.record(for: recordID),
            let shareRef = existing.share,
            let shareRecord = try? await privateDB.record(for: shareRef.recordID) as? CKShare,
@@ -106,7 +107,29 @@ final class HouseholdShareManager {
         // Push shopping lists + pantry items into the zone for the invited member to read.
         try? await CloudKitZoneSyncService.shared.pushHouseholdData(household, zoneID: zone.zoneID)
 
+        // Verify the URL is globally accessible on CloudKit's CDN before returning it.
+        // This prevents the invited member from ever receiving a link that returns
+        // "share not found" because the token hasn't propagated yet.
+        // We do this here (owner's device) so the delay happens while the owner's
+        // share-sheet loading spinner is visible, not on the invited member's screen.
+        await waitForSharePropagation(url: url)
+
         return url
+    }
+
+    /// Polls `fetchShareMetadata` until CloudKit's CDN returns the share token,
+    /// giving up after ~60 s.  Called on the owner's device after creating the share.
+    private func waitForSharePropagation(url: URL) async {
+        let delays: [UInt64] = [2, 3, 5, 8, 12, 15, 15]   // cumulative ~60 s
+        for delaySecs in delays {
+            try? await Task.sleep(nanoseconds: delaySecs * 1_000_000_000)
+            let reachable: Bool = await withCheckedContinuation { cont in
+                container.fetchShareMetadata(url: url) { metadata, _ in
+                    cont.resume(returning: metadata != nil)
+                }
+            }
+            if reachable { return }
+        }
     }
 
     // MARK: - Share detection
@@ -180,14 +203,14 @@ final class HouseholdShareManager {
         return (id: householdID, name: name, ownerName: ownerName)
     }
 
-    /// Retries `fetchShareMetadata` up to 5 times with exponential backoff.
-    /// The "share not found" server error is a raw CKDPResponseOperationResult,
-    /// so we retry on ANY error from this call (all transient errors look the same).
+    /// Retries `fetchShareMetadata` with backoff (total ~60 s).
+    /// The "share not found" server error arrives as a raw CKDPResponseOperationResult
+    /// rather than a typed CKError, so we retry on ANY failure unconditionally.
     private func fetchShareMetadataWithRetry(url: URL) async throws -> CKShare.Metadata {
-        let backoffSeconds: [UInt64] = [2, 4, 8, 15]
+        let backoffSeconds: [UInt64] = [3, 5, 8, 12, 15, 15]   // ~58 s total
         var lastError: Error = WochiError.invalidInviteLink
 
-        for attempt in 0...backoffSeconds.count {
+        for (attempt, delay) in backoffSeconds.enumerated() {
             do {
                 return try await withCheckedThrowingContinuation { cont in
                     container.fetchShareMetadata(url: url) { metadata, error in
@@ -200,8 +223,8 @@ final class HouseholdShareManager {
                 }
             } catch {
                 lastError = error
-                guard attempt < backoffSeconds.count else { break }
-                try await Task.sleep(nanoseconds: backoffSeconds[attempt] * 1_000_000_000)
+                guard attempt < backoffSeconds.count - 1 else { break }
+                try await Task.sleep(nanoseconds: delay * 1_000_000_000)
             }
         }
         throw lastError
