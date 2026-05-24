@@ -32,15 +32,27 @@ final class HouseholdShareManager {
 
     // MARK: - Share creation
 
-    /// Creates a CloudKit zone + CKShare for the household and returns the share URL.
-    /// The share URL is a real `https://www.icloud.com/share/...` link that any Apple ID can accept.
+    /// Creates (or returns the existing) CloudKit zone + CKShare for the household
+    /// and also pushes all household data to the zone so invited members can read it.
+    /// Returns a real `https://www.icloud.com/share/…` URL.
     func createShareURL(for household: Household) async throws -> URL {
         let zone = try await ensureZone(for: household.id)
-
         let recordID = CKRecord.ID(
             recordName: "household-\(household.id.uuidString)",
             zoneID: zone.zoneID
         )
+
+        // If the household record already has a share, return the existing URL
+        // and re-push data so the invited member gets the latest snapshot.
+        if let existing = try? await privateDB.record(for: recordID),
+           let shareRef = existing.share,
+           let shareRecord = try? await privateDB.record(for: shareRef.recordID) as? CKShare,
+           let url = shareRecord.url {
+            try? await CloudKitZoneSyncService.shared.pushHouseholdData(household, zoneID: zone.zoneID)
+            return url
+        }
+
+        // First time: create the WH_Household record + CKShare together.
         let record = CKRecord(recordType: "WH_Household", recordID: recordID)
         record["id"]   = household.id.uuidString as CKRecordValue
         record["name"] = household.name as CKRecordValue
@@ -52,9 +64,7 @@ final class HouseholdShareManager {
         let op = CKModifyRecordsOperation(recordsToSave: [record, share], recordIDsToDelete: nil)
         op.isAtomic = true
 
-        // Capture the server-confirmed share from perRecordSaveBlock.
-        // CKShare.url is a locally-predicted URL until CloudKit confirms the save —
-        // using the server-returned record guarantees the short-token actually exists.
+        // Capture the server-confirmed share URL from perRecordSaveBlock.
         var confirmedShareURL: URL?
         op.perRecordSaveBlock = { _, result in
             if case .success(let saved) = result, let s = saved as? CKShare {
@@ -80,6 +90,10 @@ final class HouseholdShareManager {
                 )
             )
         }
+
+        // Push shopping lists + pantry items into the zone for the invited member to read.
+        try? await CloudKitZoneSyncService.shared.pushHouseholdData(household, zoneID: zone.zoneID)
+
         return url
     }
 
@@ -94,9 +108,9 @@ final class HouseholdShareManager {
 
     // MARK: - Share acceptance
 
-    /// Accepts a CloudKit share URL.  Returns the household (id, name) from the shared record
-    /// so the caller can create a local SwiftData copy.
-    func acceptShare(url: URL) async throws -> (id: UUID, name: String) {
+    /// Accepts a CloudKit share URL.  Returns the household (id, name, ownerName) from the
+    /// shared record so the caller can create a local SwiftData copy and pull zone data.
+    func acceptShare(url: URL) async throws -> (id: UUID, name: String, ownerName: String) {
         // 1. Fetch metadata
         let metadata: CKShare.Metadata = try await withCheckedThrowingContinuation { cont in
             container.fetchShareMetadata(url: url) { metadata, error in
@@ -125,8 +139,10 @@ final class HouseholdShareManager {
               let householdID = UUID(uuidString: String(zoneName.dropFirst("wochi-".count)))
         else { throw WochiError.invalidInviteLink }
 
-        // 4. Fetch the WH_Household record from the shared database
+        // 4. Determine ownerName for use with the shared zone
         let ownerName = metadata.ownerIdentity.userRecordID?.recordName ?? CKCurrentUserDefaultName
+
+        // 5. Fetch the WH_Household record from the shared database to get the household name
         let sharedZoneID = CKRecordZone.ID(zoneName: zoneName, ownerName: ownerName)
         let recordID = CKRecord.ID(
             recordName: "household-\(householdID.uuidString)",
@@ -134,12 +150,11 @@ final class HouseholdShareManager {
         )
 
         do {
-            let record = try await sharedDB.record(for: recordID)
-            let name = record["name"] as? String ?? "Shared Household"
-            return (id: householdID, name: name)
+            let ckRecord = try await sharedDB.record(for: recordID)
+            let name = ckRecord["name"] as? String ?? "Shared Household"
+            return (id: householdID, name: name, ownerName: ownerName)
         } catch {
-            // Record may not be visible immediately after acceptance — return minimal info
-            return (id: householdID, name: "Shared Household")
+            return (id: householdID, name: "Shared Household", ownerName: ownerName)
         }
     }
 

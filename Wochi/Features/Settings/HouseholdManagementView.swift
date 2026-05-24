@@ -12,6 +12,7 @@ struct HouseholdManagementView: View {
     @State private var removeMemberCandidate: HouseholdMember?
     @State private var showLeaveConfirmation = false
     @State private var isGeneratingInvite = false
+    @State private var inviteError: String?
 
     var body: some View {
         NavigationStack {
@@ -113,20 +114,28 @@ struct HouseholdManagementView: View {
                 }
                 Button("button.cancel", role: .cancel) {}
             }
+            .alert(
+                String(localized: "error.generic"),
+                isPresented: .init(get: { inviteError != nil }, set: { if !$0 { inviteError = nil } })
+            ) {
+                Button("button.confirm", role: .cancel) { inviteError = nil }
+            } message: {
+                if let err = inviteError { Text(verbatim: err) }
+            }
         }
     }
 
     private func generateInviteLink() async {
         isGeneratingInvite = true
+        inviteError = nil
         defer { isGeneratingInvite = false }
-        if let url = try? await HouseholdShareManager.shared.createShareURL(for: household) {
+        do {
+            let url = try await HouseholdShareManager.shared.createShareURL(for: household)
             shareURL = url
-        } else {
-            let encodedName = household.name
-                .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-            shareURL = URL(string: "wochi://invite/\(household.id.uuidString)?name=\(encodedName)")
+            showShareSheet = true
+        } catch {
+            inviteError = error.localizedDescription
         }
-        showShareSheet = true
     }
 
     private func leaveHousehold() async {

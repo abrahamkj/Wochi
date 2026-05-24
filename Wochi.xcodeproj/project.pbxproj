@@ -30,6 +30,7 @@
 		593E0911559BCB72A46BF6F7 /* PantryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F09FB7A766E93EF0B24C136 /* PantryView.swift */; };
 		60D35F2690F4B2CFED4A83B0 /* BudgetRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 681CD13CCD680019CFF7A248 /* BudgetRecord.swift */; };
 		645C0517DF01C178E9C80ACF /* HouseholdShareManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A86D9944198D1599E84B40A /* HouseholdShareManager.swift */; };
+		D4E5F6A7B8C9D4E5 /* CloudKitZoneSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F6A7B8C9D0E5F6 /* CloudKitZoneSyncService.swift */; };
 		6B64BC9C5A969C67B851C25C /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7389CEC177E142EDA261A26C /* SignInView.swift */; };
 		6B7900D757AF9CE69B9F5A2E /* ComputeBudgetUseCaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B3A985E927A79DBB7049470 /* ComputeBudgetUseCaseTests.swift */; };
 		6DEDB80464FB386CF512560D /* WochiShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FE40D1BB3E48C5DDF0E7EE9 /* WochiShortcuts.swift */; };
@@ -118,6 +119,7 @@
 		42A719E50D358CA15737B4E6 /* HouseholdManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdManagementView.swift; sourceTree = "<group>"; };
 		43884894FFB37138567A13AF /* SubstitutionAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubstitutionAlert.swift; sourceTree = "<group>"; };
 		4CFFC37974BFCD5C25D1D023 /* CloudKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitManager.swift; sourceTree = "<group>"; };
+		E5F6A7B8C9D0E5F6 /* CloudKitZoneSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitZoneSyncService.swift; sourceTree = "<group>"; };
 		4E6C85899D10336E9C6143A2 /* ReceiptParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptParser.swift; sourceTree = "<group>"; };
 		570E7C4DF033DE3DD25FE1F4 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		5948F39F0B926B6BEEB6F29D /* WochiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WochiApp.swift; sourceTree = "<group>"; };
@@ -221,6 +223,7 @@
 			children = (
 				4CFFC37974BFCD5C25D1D023 /* CloudKitManager.swift */,
 				5A86D9944198D1599E84B40A /* HouseholdShareManager.swift */,
+				E5F6A7B8C9D0E5F6 /* CloudKitZoneSyncService.swift */,
 			);
 			path = CloudKit;
 			sourceTree = "<group>";
@@ -614,6 +617,7 @@
 				72092B2B4EE8FBFF9A364107 /* CategoryBreakdownView.swift in Sources */,
 				F300B1A1946FD45F26D81182 /* CheckOffItemUseCase.swift in Sources */,
 				C7B3BBB5F7FCD27134DFA31C /* CloudKitManager.swift in Sources */,
+				D4E5F6A7B8C9D4E5 /* CloudKitZoneSyncService.swift in Sources */,
 				CE73324345DFE3991F746D39 /* Color+Hex.swift in Sources */,
 				50D741055B23BEAB23C6F1B2 /* ComputeBudgetUseCase.swift in Sources */,
 				167D073A2C2BF5FEF900D15D /* Constants.swift in Sources */,

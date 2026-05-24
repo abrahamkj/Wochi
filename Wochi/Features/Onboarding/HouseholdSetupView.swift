@@ -40,7 +40,7 @@ private final class HouseholdSetupViewModel: ObservableObject {
         }
     }
 
-    func joinHousehold(via urlString: String, appState: AppState) async {
+    func joinHousehold(via urlString: String, appState: AppState, context: ModelContext) async {
         let trimmed = urlString.trimmingCharacters(in: .whitespaces)
         guard let url = URL(string: trimmed) else {
             errorMessage = WochiError.invalidInviteLink.localizedDescription
@@ -56,7 +56,7 @@ private final class HouseholdSetupViewModel: ObservableObject {
 
             if HouseholdShareManager.shared.isCloudKitShareURL(url) {
                 // Real CKShare — accept via CloudKit then create/find local record
-                let (householdID, name) = try await HouseholdShareManager.shared.acceptShare(url: url)
+                let (householdID, name, ownerName) = try await HouseholdShareManager.shared.acceptShare(url: url)
                 if let existing = try await repository.fetchHousehold(byID: householdID) {
                     household = existing
                 } else {
@@ -65,6 +65,12 @@ private final class HouseholdSetupViewModel: ObservableObject {
                         household.members = (household.members ?? []) + [member]
                     }
                 }
+                // Pull shopping lists + pantry items from the shared CloudKit zone
+                try? await CloudKitZoneSyncService.shared.pullSharedData(
+                    householdID: householdID,
+                    ownerName: ownerName,
+                    context: context
+                )
             } else {
                 // wochi://invite/<uuid>?name=<encoded> deep-link
                 let queryItems = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
@@ -284,7 +290,7 @@ struct HouseholdSetupView: View {
 
             Button {
                 Task {
-                    await viewModel.joinHousehold(via: viewModel.inviteURL, appState: appState)
+                    await viewModel.joinHousehold(via: viewModel.inviteURL, appState: appState, context: modelContext)
                 }
             } label: {
                 Group {

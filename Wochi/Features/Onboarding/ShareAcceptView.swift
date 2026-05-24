@@ -79,7 +79,7 @@ struct ShareAcceptView: View {
         defer { isLoading = false }
         do {
             let repo = HouseholdRepository(context: modelContext)
-            let (householdID, name) = try await HouseholdShareManager.shared.acceptShare(url: shareURL)
+            let (householdID, name, ownerName) = try await HouseholdShareManager.shared.acceptShare(url: shareURL)
 
             let household: Household
             if let existing = try await repo.fetchHousehold(byID: householdID) {
@@ -90,6 +90,14 @@ struct ShareAcceptView: View {
                     household.members = (household.members ?? []) + [member]
                 }
             }
+
+            // Pull shopping lists + pantry items from the shared CloudKit zone
+            try? await CloudKitZoneSyncService.shared.pullSharedData(
+                householdID: householdID,
+                ownerName: ownerName,
+                context: modelContext
+            )
+
             UserDefaults.standard.set(household.id.uuidString, forKey: Constants.UserDefaults.householdID)
             appState.currentHousehold = household
             appState.incomingShareURL = nil
