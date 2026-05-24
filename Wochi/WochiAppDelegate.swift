@@ -3,26 +3,29 @@ import CloudKit
 
 // MARK: - WochiAppDelegate
 //
-// Required so iOS can call `userDidAcceptCloudKitShareWith` when the user
-// taps a share link in Messages/Mail and confirms the native "Join Household
-// on Wochi?" system sheet.  Without this the system sheet never appears and
-// the invitation can only be accepted by pasting the URL inside the app.
+// Implements `userDidAcceptCloudKitShareWith` so iOS shows the native
+// "Join Household on Wochi?" system sheet when the user taps a share link
+// in Messages or Mail.
+//
+// Crucially, iOS hands us the CKShare.Metadata directly here — we cache it
+// in HouseholdShareManager so `acceptShare(url:)` can skip `fetchShareMetadata`
+// entirely.  This avoids the "share not found" error that occurs when the
+// CloudKit CDN hasn't yet propagated a freshly-created share token.
 
 final class WochiAppDelegate: NSObject, UIApplicationDelegate {
 
-    // Set by WochiApp after @StateObject creation so the delegate can route
-    // the acceptance metadata into the running app.
+    // Injected by WochiApp after @StateObject creation.
     weak var appState: AppState?
 
     func application(
         _ application: UIApplication,
         userDidAcceptCloudKitShareWith cloudKitShareMetadata: CKShare.Metadata
     ) {
-        // The system already verified the share exists and showed the dialog;
-        // hand the URL straight to AppState so ShareAcceptView opens.
-        // (acceptShare will still call container.accept — iOS does NOT auto-accept.)
         guard let url = cloudKitShareMetadata.share.url else { return }
         Task { @MainActor in
+            // Cache the metadata so acceptShare(url:) can skip fetchShareMetadata.
+            HouseholdShareManager.shared.cacheMetadata(cloudKitShareMetadata, for: url)
+            // Trigger ShareAcceptView to appear.
             self.appState?.incomingShareURL = url
         }
     }
