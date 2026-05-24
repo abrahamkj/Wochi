@@ -16,11 +16,13 @@ final class AppState: ObservableObject {
 
 @main
 struct WochiApp: App {
+    @UIApplicationDelegateAdaptor(WochiAppDelegate.self) private var appDelegate
+
     @StateObject private var appState = AppState()
 
     private let modelContainer: ModelContainer = {
         do {
-            return try WochiDataContainer.create() 
+            return try WochiDataContainer.create()
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
@@ -41,11 +43,18 @@ struct WochiApp: App {
             }
             .environmentObject(appState)
             .onOpenURL { url in
+                // Handles URLs pasted in-app or opened from Safari.
+                // The AppDelegate handles the native iOS share-accept sheet.
                 if HouseholdShareManager.shared.isCloudKitShareURL(url) {
                     appState.incomingShareURL = url
                 } else {
                     Task { await HouseholdShareManager.shared.handleIncomingURL(url) }
                 }
+            }
+            .task {
+                // Inject AppState into the delegate so it can route CKShare
+                // acceptance events from the system sheet into the running app.
+                appDelegate.appState = appState
             }
         }
         .modelContainer(modelContainer)

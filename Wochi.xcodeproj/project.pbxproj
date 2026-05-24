@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0740AEB608CDD3A8A637A3FF /* ReceiptDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17331D838EDE5F73A6F33697 /* ReceiptDetailView.swift */; };
 		0B272EA81E05192E0E112DF5 /* WochiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5948F39F0B926B6BEEB6F29D /* WochiApp.swift */; };
+		F7A8B9C0D1E2F7A8 /* WochiAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8B9C0D1E2F3A8B9 /* WochiAppDelegate.swift */; };
 		167D073A2C2BF5FEF900D15D /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31EFCFE47021BF8A4F607086 /* Constants.swift */; };
 		1702FA6AF221759802FDFCA5 /* ReceiptCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B512EF3A348771DB88EAB953 /* ReceiptCameraView.swift */; };
 		1B4A9A5A630048F0743FC53D /* ReceiptParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E6C85899D10336E9C6143A2 /* ReceiptParser.swift */; };
@@ -123,6 +124,7 @@
 		4E6C85899D10336E9C6143A2 /* ReceiptParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptParser.swift; sourceTree = "<group>"; };
 		570E7C4DF033DE3DD25FE1F4 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		5948F39F0B926B6BEEB6F29D /* WochiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WochiApp.swift; sourceTree = "<group>"; };
+		A8B9C0D1E2F3A8B9 /* WochiAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WochiAppDelegate.swift; sourceTree = "<group>"; };
 		5A86D9944198D1599E84B40A /* HouseholdShareManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdShareManager.swift; sourceTree = "<group>"; };
 		5D41DF95B7A45608807FA1E6 /* ShoppingItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingItem.swift; sourceTree = "<group>"; };
 		6319AC16E49CF3113436AFDF /* AddItemIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddItemIntent.swift; sourceTree = "<group>"; };
@@ -415,6 +417,7 @@
 				72696EF6FA2C5593CE0DB0DE /* Shared */,
 				A765BB2D3468DBC340B02298 /* ContentView.swift */,
 				5948F39F0B926B6BEEB6F29D /* WochiApp.swift */,
+				A8B9C0D1E2F3A8B9 /* WochiAppDelegate.swift */,
 			);
 			path = Wochi;
 			sourceTree = "<group>";
@@ -664,6 +667,7 @@
 				58F91F327309A0B1103740A7 /* StoreBreakdownView.swift in Sources */,
 				71FD146361C4046655596291 /* SubstitutionAlert.swift in Sources */,
 				0B272EA81E05192E0E112DF5 /* WochiApp.swift in Sources */,
+				F7A8B9C0D1E2F7A8 /* WochiAppDelegate.swift in Sources */,
 				CCC0C0B6DB56B9E87818E77D /* WochiDataContainer.swift in Sources */,
 				85F9DF32C3F64372AF983C3A /* WochiError.swift in Sources */,
 				1EAD16DDA0373B19F94AC8E1 /* WochiErrorBanner.swift in Sources */,

@@ -97,6 +97,38 @@ final class HouseholdShareManager {
         return url
     }
 
+    // MARK: - fetchShareMetadata with retry
+
+    /// CloudKit's share-metadata CDN can take a few seconds to recognise a
+    /// freshly-saved share token.  Retry up to 4 times with 2 s → 4 s → 8 s
+    /// backoff before giving up.
+    private func fetchShareMetadataWithRetry(url: URL) async throws -> CKShare.Metadata {
+        let delays: [UInt64] = [2, 4, 8, 0]   // seconds before each retry; last entry is unused
+        var lastError: Error = WochiError.invalidInviteLink
+
+        for (attempt, delaySecs) in delays.enumerated() {
+            do {
+                return try await withCheckedThrowingContinuation { cont in
+                    container.fetchShareMetadata(url: url) { metadata, error in
+                        if let m = metadata {
+                            cont.resume(returning: m)
+                        } else {
+                            cont.resume(throwing: error ?? WochiError.invalidInviteLink)
+                        }
+                    }
+                }
+            } catch {
+                lastError = error
+                let isNotFound = (error as? CKError)?.code == .unknownItem
+                    || error.localizedDescription.lowercased().contains("not found")
+                // Only retry on "share not found" — other errors are permanent
+                guard isNotFound, attempt < delays.count - 1 else { break }
+                try await Task.sleep(nanoseconds: delaySecs * 1_000_000_000)
+            }
+        }
+        throw lastError
+    }
+
     // MARK: - Share detection
 
     /// Returns true if `url` is a real CloudKit share URL (icloud.com/share/…)
@@ -111,21 +143,16 @@ final class HouseholdShareManager {
     /// Accepts a CloudKit share URL.  Returns the household (id, name, ownerName) from the
     /// shared record so the caller can create a local SwiftData copy and pull zone data.
     func acceptShare(url: URL) async throws -> (id: UUID, name: String, ownerName: String) {
-        // 1. Fetch metadata
-        let metadata: CKShare.Metadata = try await withCheckedThrowingContinuation { cont in
-            container.fetchShareMetadata(url: url) { metadata, error in
-                if let m = metadata {
-                    cont.resume(returning: m)
-                } else {
-                    cont.resume(throwing: error ?? WochiError.invalidInviteLink)
-                }
-            }
-        }
+        // 1. Fetch metadata — retry up to 4 times because CloudKit's share-metadata CDN
+        //    can take a few seconds to propagate a freshly-created share token.
+        let metadata = try await fetchShareMetadataWithRetry(url: url)
 
-        // 2. Accept the share
+        // 2. Accept the share (alreadyShared is fine — treat it as success)
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
             container.accept(metadata) { _, error in
-                if let error = error {
+                if let ckErr = error as? CKError, ckErr.code == .alreadyShared {
+                    cont.resume()
+                } else if let error = error {
                     cont.resume(throwing: error)
                 } else {
                     cont.resume()
