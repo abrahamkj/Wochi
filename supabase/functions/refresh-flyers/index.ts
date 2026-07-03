@@ -26,64 +26,88 @@ const HEADERS = {
   "Origin": "https://www.handelsangebote.de",
 }
 
-// ─── Probe handler (GET) — try page-embedded data ────────────────────────────
+// ─── Probe handler (GET) — Offerista API discovery ────────────────────────────
+// handelsangebote.de is an Offerista white-label product. We have integer brochure IDs
+// from the page's tracking JSON. Now we find the Offerista API base URL.
 async function probeHandelsangebote(plz: string): Promise<object> {
-  const results: object[] = []
+  // 1. Fetch the lazy home JS chunk which contains the real API calls
+  const homeChunkRes = await fetch("https://www.handelsangebote.de/build/js-handelsangebote-de-home.6289e086.js", { headers: HEADERS })
+  let chunkApiUrls: string[] = []
+  let chunkFullText = ""
+  if (homeChunkRes.ok) {
+    chunkFullText = await homeChunkRes.text()
+    const extract = (re: RegExp) =>
+      [...chunkFullText.matchAll(re)].map(m => m[1]).filter((v, i, a) => a.indexOf(v) === i)
 
-  // Page URLs that might contain embedded offer data
-  const pageUrls = [
-    `https://www.handelsangebote.de/angebote/?plz=${plz}`,
-    `https://www.handelsangebote.de/prospekte/?plz=${plz}`,
-    `https://www.handelsangebote.de/angebote/${plz}/`,
-    `https://www.handelsangebote.de/supermarkt/?plz=${plz}`,
-    `https://www.handelsangebote.de/supermarkt/lidl/?plz=${plz}`,
-    `https://www.handelsangebote.de/brochure/preview?plz=${plz}`,
-  ]
-
-  for (const url of pageUrls) {
-    const res = await fetch(url, { headers: { ...HEADERS, Accept: "text/html,application/xhtml+xml" } })
-    const text = await res.text()
-
-    // Extract embedded JSON blobs from <script> tags
-    const inlineJsonBlocks = [...text.matchAll(/<script[^>]*type=["']application\/json["'][^>]*>([\s\S]*?)<\/script>/gi)]
-      .map(m => { try { return JSON.parse(m[1]) } catch { return null } })
-      .filter(Boolean)
-      .slice(0, 5)
-
-    // Extract window.__ initial state patterns
-    const windowState = [...text.matchAll(/window\.__([A-Z_]+)\s*=\s*(\{[\s\S]{0,2000}?\});/g)]
-      .map(m => ({ key: m[1], preview: m[2].slice(0, 300) }))
-      .slice(0, 5)
-
-    // Extract all https:// URLs from the HTML body
-    const pageUrls2 = [...text.matchAll(/["'](https?:\/\/[^"']{10,150})["']/g)]
-      .map(m => m[1])
-      .filter(u => u.includes("api") || u.includes("offer") || u.includes("product") || u.includes("brochure"))
-      .filter((v, i, a) => a.indexOf(v) === i)
-      .slice(0, 20)
-
-    // Look for <script src> to find more JS chunks (lazy-loaded)
-    const lazyChunks = [...text.matchAll(/<script[^>]+src=["']([^"']+)["']/gi)]
-      .map(m => m[1])
-      .filter(s => !s.includes("js-handelsangebote-de-app"))
-      .slice(0, 5)
-
-    results.push({
-      url,
-      status: res.status,
-      finalUrl: res.url,
-      bodySize: text.length,
-      inlineJsonBlocks,
-      windowState,
-      apiUrlsInHtml: pageUrls2,
-      lazyChunks,
-      bodyPreview: text.slice(0, 600),
-    })
-
-    if (res.ok && (inlineJsonBlocks.length > 0 || pageUrls2.length > 0)) break
+    chunkApiUrls = [
+      ...extract(/["'`](https?:\/\/[^"'`\s]{10,150})["'`]/gi),
+      ...extract(/["'`](\/[a-z][a-z0-9_\-\/]{2,60})["'`]/gi)
+        .filter(p => p.includes("api") || p.includes("offer") || p.includes("brochure") || p.includes("product")),
+    ].filter((v, i, a) => a.indexOf(v) === i).slice(0, 50)
   }
 
-  return { plz, results }
+  // 2. Try Offerista API directly with known brochure IDs from page tracking JSON
+  const knownBrochureIds = [6104336, 6100160, 6094172, 6105539, 6095426]
+  const offeristaCandidates = [
+    `https://api.offerista.com/brochures/${knownBrochureIds[0]}`,
+    `https://api.offerista.com/v1/brochures/${knownBrochureIds[0]}`,
+    `https://api.offerista.com/v1/brochures/${knownBrochureIds[0]}/offers`,
+    `https://api.offerista.com/v2/brochures/${knownBrochureIds[0]}`,
+    `https://app.offerista.com/api/brochures/${knownBrochureIds[0]}`,
+    `https://www.handelsangebote.de/api/brochures/${knownBrochureIds[0]}`,
+    `https://www.handelsangebote.de/api/brochure/${knownBrochureIds[0]}`,
+    `https://www.handelsangebote.de/api/products?brochureId=${knownBrochureIds[0]}`,
+    `https://www.handelsangebote.de/api/offers?brochureId=${knownBrochureIds[0]}`,
+  ]
+
+  const offeristProbes: object[] = []
+  for (const url of offeristaCandidates) {
+    try {
+      const res = await fetch(url, { headers: HEADERS })
+      const text = await res.text()
+      let body: any = null
+      try { body = JSON.parse(text) } catch { /* not json */ }
+      offeristProbes.push({
+        url,
+        status: res.status,
+        isJson: body !== null,
+        keys: body ? Object.keys(body).slice(0, 10) : null,
+        preview: text.slice(0, 300),
+      })
+      if (res.ok) break
+    } catch (e) {
+      offeristProbes.push({ url, error: String(e) })
+    }
+  }
+
+  // 3. Try fetching a known product ID from the tracking JSON
+  const knownProductId = 43766572
+  const productProbes: object[] = []
+  for (const url of [
+    `https://api.offerista.com/products/${knownProductId}`,
+    `https://www.handelsangebote.de/api/products/${knownProductId}`,
+  ]) {
+    try {
+      const res = await fetch(url, { headers: HEADERS })
+      const text = await res.text()
+      let body: any = null
+      try { body = JSON.parse(text) } catch { /* not json */ }
+      productProbes.push({ url, status: res.status, isJson: body !== null, preview: text.slice(0, 300) })
+      if (res.ok) break
+    } catch (e) {
+      productProbes.push({ url, error: String(e) })
+    }
+  }
+
+  return {
+    plz,
+    homeChunkStatus: homeChunkRes.status,
+    homeChunkSize: chunkFullText.length,
+    chunkApiUrls,
+    knownBrochureIds,
+    offeristApiProbes: offeristProbes,
+    productProbes,
+  }
 }
 
 // ─── Fetch flyers from handelsangebote.de ────────────────────────────────────
