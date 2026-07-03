@@ -102,16 +102,12 @@ final class AlertGenerationService {
         context: ModelContext
     ) -> Bool {
         guard let brand else { return false }
-        // Fetch all ShoppingItems that are brand-blocked (.never); filter by brand
-        // and household in memory. Avoids optional-String == String predicate issues.
-        let neverRaw = BrandPreference.never.rawValue
-        let descriptor = FetchDescriptor<ShoppingItem>(
-            predicate: #Predicate { $0.brandTier.rawValue == neverRaw }
-        )
+        // #Predicate doesn't support enum .rawValue — fetch all and filter in memory.
         let householdID = household.id
-        let items = (try? context.fetch(descriptor)) ?? []
+        let items = (try? context.fetch(FetchDescriptor<ShoppingItem>())) ?? []
         return items.contains {
             $0.preferredBrand == brand &&
+            $0.brandTier == .never &&
             $0.list?.household?.id == householdID
         }
     }
