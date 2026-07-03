@@ -8,9 +8,8 @@ enum Constants {
     }
 
     enum Supabase {
-        // Replace with your actual Supabase project URL and anon key
-        static let projectURL = "https://your-project-id.supabase.co"
-        static let anonKey    = "your-anon-key-here"
+        static let projectURL = "https://nwjfrxzghiqzswrykxze.supabase.co"
+        static let anonKey    = "sb_publishable_3Ga46t0roNvtsW0PL2-Zuw_gwDXl0md"
     }
 
     enum Budget {
