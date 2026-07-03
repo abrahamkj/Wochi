@@ -26,47 +26,59 @@ const HEADERS = {
   "Origin": "https://www.handelsangebote.de",
 }
 
-// ─── Probe handler (GET) — find the real API ──────────────────────────────────
+// ─── Probe handler (GET) — extract real API URLs from page source ─────────────
 async function probeHandelsangebote(plz: string): Promise<object> {
-  const candidates = [
-    `https://www.handelsangebote.de/api/offers?zip=${plz}`,
-    `https://www.handelsangebote.de/api/v1/offers?zipCode=${plz}`,
-    `https://www.handelsangebote.de/api/v1/leaflets?zip=${plz}`,
-    `https://www.handelsangebote.de/api/leaflets?zip=${plz}&country=DE`,
-    `https://www.handelsangebote.de/api/publications?zip=${plz}`,
-    `https://www.handelsangebote.de/api/v2/offers?zip=${plz}&limit=20`,
-    `https://api.handelsangebote.de/v1/offers?zip=${plz}`,
-    `https://www.handelsangebote.de/api/stores?zip=${plz}`,
-    `https://www.handelsangebote.de/api/brochures?zip=${plz}`,
-    `https://www.handelsangebote.de/api/flyers?zip=${plz}`,
-  ]
+  // 1. Fetch homepage HTML and extract any API URLs or config
+  const homeRes = await fetch(`https://www.handelsangebote.de/`, { headers: HEADERS })
+  const homeHtml = await homeRes.text()
 
-  const results: object[] = []
+  // Look for API base URLs, config objects, or fetch() calls in the HTML/inline JS
+  const apiUrlMatches = [
+    ...homeHtml.matchAll(/["'`](https?:\/\/[^"'`]*api[^"'`]{0,80})["'`]/gi),
+    ...homeHtml.matchAll(/["'`](\/api\/[^"'`]{1,80})["'`]/gi),
+    ...homeHtml.matchAll(/apiUrl\s*[:=]\s*["'`]([^"'`]+)["'`]/gi),
+    ...homeHtml.matchAll(/baseUrl\s*[:=]\s*["'`]([^"'`]+)["'`]/gi),
+    ...homeHtml.matchAll(/endpoint\s*[:=]\s*["'`]([^"'`]+)["'`]/gi),
+  ].map(m => m[1]).filter((v, i, a) => a.indexOf(v) === i).slice(0, 30)
 
-  for (const url of candidates) {
-    try {
-      const res = await fetch(url, { headers: HEADERS })
-      const text = await res.text()
-      let body: any = null
-      try { body = JSON.parse(text) } catch { /* not JSON */ }
+  // 2. Look for <script src> tags pointing to JS bundles we should also probe
+  const scriptSrcs = [...homeHtml.matchAll(/<script[^>]+src=["']([^"']+)["']/gi)]
+    .map(m => m[1])
+    .filter(s => s.includes("chunk") || s.includes("main") || s.includes("app") || s.includes("bundle"))
+    .slice(0, 3)
 
-      results.push({
-        url,
-        status: res.status,
-        contentType: res.headers.get("content-type"),
-        bodyPreview: text.slice(0, 500),
-        parsedKeys: body ? Object.keys(body) : null,
-        isJson: body !== null,
-      })
+  // 3. Fetch the API root (Symfony API Platform exposes docs at /api)
+  let apiRootBody: any = null
+  const apiRootRes = await fetch(`https://www.handelsangebote.de/api`, {
+    headers: { ...HEADERS, Accept: "application/ld+json" }
+  })
+  if (apiRootRes.ok) {
+    const t = await apiRootRes.text()
+    try { apiRootBody = JSON.parse(t) } catch { apiRootBody = t.slice(0, 1000) }
+  }
 
-      // Stop on first 200 that looks useful
-      if (res.ok && body !== null) break
-    } catch (e) {
-      results.push({ url, error: String(e) })
+  // 4. Try a JS bundle to extract API paths from it
+  let bundleApiPaths: string[] = []
+  if (scriptSrcs[0]) {
+    const src = scriptSrcs[0].startsWith("http") ? scriptSrcs[0] : `https://www.handelsangebote.de${scriptSrcs[0]}`
+    const bundleRes = await fetch(src, { headers: HEADERS })
+    if (bundleRes.ok) {
+      const bundleText = await bundleRes.text()
+      bundleApiPaths = [
+        ...bundleText.matchAll(/["'`](\/api\/[^"'`?]{2,60})["'`]/gi),
+      ].map(m => m[1]).filter((v, i, a) => a.indexOf(v) === i).slice(0, 30)
     }
   }
 
-  return { plz, results }
+  return {
+    plz,
+    homepageStatus: homeRes.status,
+    apiRootStatus: apiRootRes.status,
+    apiRootBody,
+    apiUrlsFoundInHomepage: apiUrlMatches,
+    scriptBundles: scriptSrcs,
+    apiPathsFoundInBundle: bundleApiPaths,
+  }
 }
 
 // ─── Fetch flyers from handelsangebote.de ────────────────────────────────────
