@@ -1,17 +1,1 @@
-# Supabase project configuration
-# https://supabase.com/docs/guides/cli/config
-
-[api]
-port = 54321
-
-[db]
-port = 54322
-
-[studio]
-port = 54323
-
-[local_smtp]
-enabled = false
-
-[functions]
-verify_jwt = false
+project_id = "nwjfrxzghiqzswrykxze"
