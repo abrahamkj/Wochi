@@ -1,20 +1,33 @@
 import Foundation
+import CoreLocation
 import SwiftData
 
 @MainActor
 final class AlertGenerationService {
     static let shared = AlertGenerationService()
 
-    // Returns an error string if something went wrong, nil on success.
     func generateAlerts(
         for household: Household,
         stores: [StoreChain],
         context: ModelContext
     ) async throws {
+        // 1. Resolve user location → find which chains are actually nearby
+        //    and get postal code for regional deal filtering.
+        let location = await LocationManager.shared.currentLocation()
+        let postalCode = await resolvePostalCode(from: location)
+
+        let nearbyChains: [StoreChain]
+        if let location {
+            let detected = await NearbyStoreService.shared.nearbyChains(near: location)
+            nearbyChains = detected.isEmpty ? stores : detected
+        } else {
+            nearbyChains = stores
+        }
+
         let priceRepo = PriceRepository(context: context)
 
-        // Fetch ALL active deals from Supabase for the household's stores.
-        let allDeals = try await priceRepo.fetchCurrentFlyers(for: stores)
+        // 2. Fetch active deals for nearby chains, filtered by postal code.
+        let allDeals = try await priceRepo.fetchCurrentFlyers(for: nearbyChains, postalCode: postalCode)
         guard !allDeals.isEmpty else { return }
 
         // Optionally narrow to products the household has bought recently.
@@ -82,6 +95,12 @@ final class AlertGenerationService {
             .filter { $0.household?.id == householdID && $0.createdAt >= weekAgo }
             .count
         return count >= Constants.Budget.maxAlertsPerProductPerWeek
+    }
+
+    private func resolvePostalCode(from location: CLLocation?) async -> String? {
+        guard let location else { return nil }
+        let placemarks = try? await CLGeocoder().reverseGeocodeLocation(location)
+        return placemarks?.first?.postalCode
     }
 
     private func isBrandBlocked(brand: String?, household: Household, context: ModelContext) -> Bool {

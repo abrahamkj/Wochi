@@ -13,6 +13,7 @@ final class FlyerCache {
     var validUntil: Date = Date()
     var category: String?
     var flyerImageURL: String?
+    var postalCode: String?
     var fetchedAt: Date = Date()
 
     init(from price: FlyerPrice) {
@@ -26,6 +27,7 @@ final class FlyerCache {
         self.validUntil    = price.validUntil
         self.category      = price.category
         self.flyerImageURL = price.flyerImageURL
+        self.postalCode    = price.postalCode
         self.fetchedAt     = Date()
     }
 
@@ -42,7 +44,10 @@ final class FlyerCache {
             validFrom:     validFrom,
             validUntil:    validUntil,
             category:      category,
-            flyerImageURL: flyerImageURL
+            flyerImageURL: flyerImageURL,
+            postalCode:    postalCode,
+            latitude:      nil,
+            longitude:     nil
         )
     }
 }

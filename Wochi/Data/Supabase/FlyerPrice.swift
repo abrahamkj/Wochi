@@ -11,6 +11,9 @@ struct FlyerPrice: Codable, Identifiable {
     let validUntil: Date
     let category: String?
     let flyerImageURL: String?
+    let postalCode: String?   // German PLZ — nil means deal is nationwide
+    let latitude: Double?     // store-specific lat (optional)
+    let longitude: Double?    // store-specific lng (optional)
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -23,6 +26,8 @@ struct FlyerPrice: Codable, Identifiable {
         case validUntil   = "valid_until"
         case category
         case flyerImageURL = "flyer_image_url"
+        case postalCode    = "postal_code"
+        case latitude, longitude
     }
 
     var savingsPercent: Double {
