@@ -10,8 +10,8 @@ port = 54322
 [studio]
 port = 54323
 
-[inbucket]
-port = 54324
+[local_smtp]
+enabled = false
 
 [functions]
 verify_jwt = false
