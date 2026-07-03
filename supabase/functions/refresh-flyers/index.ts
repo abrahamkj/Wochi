@@ -26,90 +26,64 @@ const HEADERS = {
   "Origin": "https://www.handelsangebote.de",
 }
 
-// ─── Probe handler (GET) — extract real API URLs from page source ─────────────
+// ─── Probe handler (GET) — try page-embedded data ────────────────────────────
 async function probeHandelsangebote(plz: string): Promise<object> {
-  // 1. Fetch homepage HTML and extract any API URLs or config
-  const homeRes = await fetch(`https://www.handelsangebote.de/`, { headers: HEADERS })
-  const homeHtml = await homeRes.text()
+  const results: object[] = []
 
-  // Look for API base URLs, config objects, or fetch() calls in the HTML/inline JS
-  const apiUrlMatches = [
-    ...homeHtml.matchAll(/["'`](https?:\/\/[^"'`]*api[^"'`]{0,80})["'`]/gi),
-    ...homeHtml.matchAll(/["'`](\/api\/[^"'`]{1,80})["'`]/gi),
-    ...homeHtml.matchAll(/apiUrl\s*[:=]\s*["'`]([^"'`]+)["'`]/gi),
-    ...homeHtml.matchAll(/baseUrl\s*[:=]\s*["'`]([^"'`]+)["'`]/gi),
-    ...homeHtml.matchAll(/endpoint\s*[:=]\s*["'`]([^"'`]+)["'`]/gi),
-  ].map(m => m[1]).filter((v, i, a) => a.indexOf(v) === i).slice(0, 30)
+  // Page URLs that might contain embedded offer data
+  const pageUrls = [
+    `https://www.handelsangebote.de/angebote/?plz=${plz}`,
+    `https://www.handelsangebote.de/prospekte/?plz=${plz}`,
+    `https://www.handelsangebote.de/angebote/${plz}/`,
+    `https://www.handelsangebote.de/supermarkt/?plz=${plz}`,
+    `https://www.handelsangebote.de/supermarkt/lidl/?plz=${plz}`,
+    `https://www.handelsangebote.de/brochure/preview?plz=${plz}`,
+  ]
 
-  // 2. Look for <script src> tags pointing to JS bundles we should also probe
-  const scriptSrcs = [...homeHtml.matchAll(/<script[^>]+src=["']([^"']+)["']/gi)]
-    .map(m => m[1])
-    .filter(s => s.includes("chunk") || s.includes("main") || s.includes("app") || s.includes("bundle"))
-    .slice(0, 3)
+  for (const url of pageUrls) {
+    const res = await fetch(url, { headers: { ...HEADERS, Accept: "text/html,application/xhtml+xml" } })
+    const text = await res.text()
 
-  // 3. Fetch the API root (Symfony API Platform exposes docs at /api)
-  let apiRootBody: any = null
-  const apiRootRes = await fetch(`https://www.handelsangebote.de/api`, {
-    headers: { ...HEADERS, Accept: "application/ld+json" }
-  })
-  if (apiRootRes.ok) {
-    const t = await apiRootRes.text()
-    try { apiRootBody = JSON.parse(t) } catch { apiRootBody = t.slice(0, 1000) }
+    // Extract embedded JSON blobs from <script> tags
+    const inlineJsonBlocks = [...text.matchAll(/<script[^>]*type=["']application\/json["'][^>]*>([\s\S]*?)<\/script>/gi)]
+      .map(m => { try { return JSON.parse(m[1]) } catch { return null } })
+      .filter(Boolean)
+      .slice(0, 5)
+
+    // Extract window.__ initial state patterns
+    const windowState = [...text.matchAll(/window\.__([A-Z_]+)\s*=\s*(\{[\s\S]{0,2000}?\});/g)]
+      .map(m => ({ key: m[1], preview: m[2].slice(0, 300) }))
+      .slice(0, 5)
+
+    // Extract all https:// URLs from the HTML body
+    const pageUrls2 = [...text.matchAll(/["'](https?:\/\/[^"']{10,150})["']/g)]
+      .map(m => m[1])
+      .filter(u => u.includes("api") || u.includes("offer") || u.includes("product") || u.includes("brochure"))
+      .filter((v, i, a) => a.indexOf(v) === i)
+      .slice(0, 20)
+
+    // Look for <script src> to find more JS chunks (lazy-loaded)
+    const lazyChunks = [...text.matchAll(/<script[^>]+src=["']([^"']+)["']/gi)]
+      .map(m => m[1])
+      .filter(s => !s.includes("js-handelsangebote-de-app"))
+      .slice(0, 5)
+
+    results.push({
+      url,
+      status: res.status,
+      finalUrl: res.url,
+      bodySize: text.length,
+      inlineJsonBlocks,
+      windowState,
+      apiUrlsInHtml: pageUrls2,
+      lazyChunks,
+      bodyPreview: text.slice(0, 600),
+    })
+
+    if (res.ok && (inlineJsonBlocks.length > 0 || pageUrls2.length > 0)) break
   }
 
-  // 4. Fetch the JS bundle and extract every URL / API hint
-  let bundleInfo: object = { skipped: true }
-  if (scriptSrcs[0]) {
-    const src = scriptSrcs[0].startsWith("http") ? scriptSrcs[0] : `https://www.handelsangebote.de${scriptSrcs[0]}`
-    const bundleRes = await fetch(src, { headers: HEADERS })
-    const bundleStatus = bundleRes.status
-
-    if (bundleRes.ok) {
-      const bundleText = await bundleRes.text()
-      const size = bundleText.length
-
-      const extract = (re: RegExp) =>
-        [...bundleText.matchAll(re)].map(m => m[1]).filter((v, i, a) => a.indexOf(v) === i)
-
-      // Full https:// URLs in the bundle (any domain)
-      const fullUrls = extract(/["'`](https?:\/\/[^"'`\s]{10,120})["'`]/gi)
-        .filter(u => !u.includes("fonts.") && !u.includes("cdn.") && !u.includes("analytics"))
-        .slice(0, 40)
-
-      // Relative paths that look like API calls
-      const relativePaths = extract(/["'`](\/[a-z0-9_\-\/]{3,60})["'`]/gi)
-        .filter(p => p.includes("offer") || p.includes("product") || p.includes("flyer")
-                  || p.includes("brochure") || p.includes("store") || p.includes("search")
-                  || p.includes("zip") || p.includes("plz") || p.includes("postal"))
-        .slice(0, 30)
-
-      // fetch() / axios calls pattern
-      const fetchCalls = extract(/fetch\(["'`]([^"'`]{10,120})["'`]/gi).slice(0, 20)
-      const axiosCalls = extract(/axios\.[a-z]+\(["'`]([^"'`]{5,120})["'`]/gi).slice(0, 20)
-
-      // Config-like patterns: baseUrl, endpoint, apiUrl, host
-      const configVars = extract(/(?:baseUrl|endpoint|apiUrl|apiBase|host|serviceUrl)\s*[:=]\s*["'`]([^"'`]{5,120})["'`]/gi).slice(0, 20)
-
-      // ZIP/postal code query param patterns
-      const zipParams = extract(/["'`]([^"'`]{0,60}(?:zip|plz|postalCode|zipCode|postal)[^"'`]{0,60})["'`]/gi)
-        .filter(v => v.includes("/") || v.includes("?"))
-        .slice(0, 20)
-
-      bundleInfo = { src, bundleStatus, size, fullUrls, relativePaths, fetchCalls, axiosCalls, configVars, zipParams }
-    } else {
-      bundleInfo = { src, bundleStatus }
-    }
-  }
-
-  return {
-    plz,
-    homepageStatus: homeRes.status,
-    apiRootStatus: apiRootRes.status,
-    apiRootBody,
-    apiUrlsFoundInHomepage: apiUrlMatches,
-    scriptBundles: scriptSrcs,
-    bundleInfo,
-  }
+  return { plz, results }
 }
 
 // ─── Fetch flyers from handelsangebote.de ────────────────────────────────────
