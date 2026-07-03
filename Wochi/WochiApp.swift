@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import BackgroundTasks
 
 // MARK: - AppState
 
@@ -22,7 +23,9 @@ struct WochiApp: App {
 
     private let modelContainer: ModelContainer = {
         do {
-            return try WochiDataContainer.create()
+            let container = try WochiDataContainer.create()
+            FlyerRefreshTask.register(modelContainer: container)
+            return container
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
@@ -55,6 +58,8 @@ struct WochiApp: App {
                 // Inject AppState into the delegate so it can route CKShare
                 // acceptance events from the system sheet into the running app.
                 appDelegate.appState = appState
+                // Schedule the first background flyer refresh.
+                FlyerRefreshTask.schedule()
             }
         }
         .modelContainer(modelContainer)

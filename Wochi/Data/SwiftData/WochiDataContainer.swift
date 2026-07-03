@@ -14,6 +14,7 @@ enum WochiDataContainer {
             ReceiptItem.self,
             PreferredStore.self,
             SubstitutionAlert.self,
+            FlyerCache.self,
         ])
 
         // Use CloudKit private database for sync across the current user's devices.

@@ -7,6 +7,12 @@ enum Constants {
         static let urlScheme = "wochi"
     }
 
+    enum Supabase {
+        // Replace with your actual Supabase project URL and anon key
+        static let projectURL = "https://your-project-id.supabase.co"
+        static let anonKey    = "your-anon-key-here"
+    }
+
     enum Budget {
         static let flyerRefreshTaskID = "com.abram.wochi.flyer-refresh"
         static let dealThresholdPercent = 15.0

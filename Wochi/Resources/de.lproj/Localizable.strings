@@ -3,6 +3,7 @@
 // MARK: - Tabs
 "tab.shopping" = "Einkauf";
 "tab.pantry" = "Vorrat";
+"tab.alerts" = "Angebote";
 "tab.budget" = "Budget";
 "tab.settings" = "Einstellungen";
 

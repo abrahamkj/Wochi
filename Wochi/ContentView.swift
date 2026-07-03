@@ -10,12 +10,14 @@ struct ContentView: View {
     @Query(filter: #Predicate<ShoppingItem> { !$0.isChecked })
     private var uncheckedItems: [ShoppingItem]
 
-    private var shoppingBadgeCount: Int {
-        uncheckedItems.count
-    }
+    @Query(filter: #Predicate<SubstitutionAlert> { !$0.isRead && !$0.isDismissed })
+    private var unreadAlerts: [SubstitutionAlert]
+
+    private var shoppingBadgeCount: Int { uncheckedItems.count }
+    private var alertsBadgeCount: Int   { unreadAlerts.count }
 
     enum Tab {
-        case shopping, pantry, budget, settings
+        case shopping, pantry, alerts, budget, settings
     }
 
     var body: some View {
@@ -39,6 +41,16 @@ struct ContentView: View {
                     Label("tab.pantry", systemImage: "house")
                 }
                 .tag(Tab.pantry)
+
+            AlertsView(viewModel: AlertsViewModel(
+                household: appState.currentHousehold ?? Household.sample(),
+                context: context
+            ))
+                .tabItem {
+                    Label("tab.alerts", systemImage: "tag")
+                }
+                .badge(alertsBadgeCount > 0 ? alertsBadgeCount : 0)
+                .tag(Tab.alerts)
 
             BudgetView(viewModel: BudgetViewModel(
                 budgetRepository: BudgetRepository(receiptRepository: ReceiptRepository(context: context)),
