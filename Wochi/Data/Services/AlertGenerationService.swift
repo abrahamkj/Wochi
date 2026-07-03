@@ -59,18 +59,22 @@ final class AlertGenerationService {
             value: -Constants.Budget.purchaseHistoryWeeks,
             to: Date()
         ) ?? Date()
-        let householdID = household.id
 
-        // Collect unique item names from shopping lists (checked items)
+        // Fetch only checked items; filter by household and date in memory to avoid
+        // predicate type-check timeouts from deep optional chains + nil-coalescing.
         let descriptor = FetchDescriptor<ShoppingItem>(
-            predicate: #Predicate {
-                $0.list?.household?.id == householdID &&
-                $0.isChecked &&
-                ($0.checkedAt ?? Date.distantPast) >= cutoff
-            }
+            predicate: #Predicate { $0.isChecked }
         )
         let items = (try? context.fetch(descriptor)) ?? []
-        let unique = Set(items.map { $0.name })
+        let householdID = household.id
+        let unique = Set(
+            items
+                .filter {
+                    $0.list?.household?.id == householdID &&
+                    ($0.checkedAt ?? .distantPast) >= cutoff
+                }
+                .map { $0.name }
+        )
         return Array(unique)
     }
 
@@ -80,15 +84,15 @@ final class AlertGenerationService {
         context: ModelContext
     ) -> Bool {
         let weekAgo = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date()) ?? Date()
-        let householdID = household.id
+        // Fetch by productName only; filter household + date in memory.
         let descriptor = FetchDescriptor<SubstitutionAlert>(
-            predicate: #Predicate {
-                $0.household?.id == householdID &&
-                $0.productName == productName &&
-                $0.createdAt >= weekAgo
-            }
+            predicate: #Predicate { $0.productName == productName }
         )
-        let count = (try? context.fetchCount(descriptor)) ?? 0
+        let householdID = household.id
+        let matches = (try? context.fetch(descriptor)) ?? []
+        let count = matches.filter {
+            $0.household?.id == householdID && $0.createdAt >= weekAgo
+        }.count
         return count >= Constants.Budget.maxAlertsPerProductPerWeek
     }
 
@@ -98,17 +102,15 @@ final class AlertGenerationService {
         context: ModelContext
     ) -> Bool {
         guard let brand else { return false }
-        let householdID = household.id
-        // brandTier is stored as a raw String in SwiftData, so compare against the raw value
-        let neverRaw = BrandPreference.never.rawValue
+        // Fetch items with this brand; check household + brandTier in memory.
         let descriptor = FetchDescriptor<ShoppingItem>(
-            predicate: #Predicate {
-                $0.list?.household?.id == householdID &&
-                $0.preferredBrand == brand &&
-                $0.brandTier.rawValue == neverRaw
-            }
+            predicate: #Predicate { $0.preferredBrand == brand }
         )
-        let count = (try? context.fetchCount(descriptor)) ?? 0
-        return count > 0
+        let householdID = household.id
+        let items = (try? context.fetch(descriptor)) ?? []
+        return items.contains {
+            $0.list?.household?.id == householdID &&
+            $0.brandTier == .never
+        }
     }
 }
