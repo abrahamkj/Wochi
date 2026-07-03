@@ -18,96 +18,80 @@ const LOCATIONS = [
   { plz: "01067", city: "Dresden" },
 ]
 
+const BONIAL_ACCOUNT_ID = "b48bdfb7-1abf-4462-946c-e5cec3bbe64e"
+
 const HEADERS = {
   "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
   "Accept": "application/json, text/plain, */*",
   "Accept-Language": "de-DE,de;q=0.9",
-  "Referer": "https://www.handelsangebote.de/",
-  "Origin": "https://www.handelsangebote.de",
+  "Referer": "https://www.kaufda.de/",
+  "Origin": "https://www.kaufda.de",
 }
 
-// ─── Probe handler (GET) — Offerista API discovery ────────────────────────────
-// handelsangebote.de is an Offerista white-label product. We have integer brochure IDs
-// from the page's tracking JSON. Now we find the Offerista API base URL.
-async function probeHandelsangebote(plz: string): Promise<object> {
-  // 1. Fetch the lazy home JS chunk which contains the real API calls
-  const homeChunkRes = await fetch("https://www.handelsangebote.de/build/js-handelsangebote-de-home.6289e086.js", { headers: HEADERS })
-  let chunkApiUrls: string[] = []
-  let chunkFullText = ""
-  if (homeChunkRes.ok) {
-    chunkFullText = await homeChunkRes.text()
-    const extract = (re: RegExp) =>
-      [...chunkFullText.matchAll(re)].map(m => m[1]).filter((v, i, a) => a.indexOf(v) === i)
+// ─── Probe handler (GET) — Kaufda/Bonial brochure listing discovery ──────────
+async function probeKaufda(plz: string): Promise<object> {
+  // Real bonialAccountId captured from user's browser session
+  const accountId = "b48bdfb7-1abf-4462-946c-e5cec3bbe64e"
 
-    chunkApiUrls = [
-      ...extract(/["'`](https?:\/\/[^"'`\s]{10,150})["'`]/gi),
-      ...extract(/["'`](\/[a-z][a-z0-9_\-\/]{2,60})["'`]/gi)
-        .filter(p => p.includes("api") || p.includes("offer") || p.includes("brochure") || p.includes("product")),
-    ].filter((v, i, a) => a.indexOf(v) === i).slice(0, 50)
+  // 1. Identify the unknown second brochure the user captured
+  const unknownBrochureId = "b627b292-36a9-4e38-b4c4-a281ce03827f"
+  const brochureCheckUrl = `https://www.kaufda.de/api/personalisedOffers?brochureId=${unknownBrochureId}&size=5&bonialAccountId=${accountId}&userPlatformCategory=desktop.web.browser`
+  let unknownBrochureInfo: object = {}
+  try {
+    const res = await fetch(brochureCheckUrl, { headers: HEADERS })
+    const data = await res.json()
+    const first = data.contents?.[0]
+    unknownBrochureInfo = {
+      status: res.status,
+      publisherName: first?.publisherName,
+      title: first?.title,
+      totalItems: data.contents?.length,
+    }
+  } catch (e) {
+    unknownBrochureInfo = { error: String(e) }
   }
 
-  // 2. Try Offerista API directly with known brochure IDs from page tracking JSON
-  const knownBrochureIds = [6104336, 6100160, 6094172, 6105539, 6095426]
-  const offeristaCandidates = [
-    `https://api.offerista.com/brochures/${knownBrochureIds[0]}`,
-    `https://api.offerista.com/v1/brochures/${knownBrochureIds[0]}`,
-    `https://api.offerista.com/v1/brochures/${knownBrochureIds[0]}/offers`,
-    `https://api.offerista.com/v2/brochures/${knownBrochureIds[0]}`,
-    `https://app.offerista.com/api/brochures/${knownBrochureIds[0]}`,
-    `https://www.handelsangebote.de/api/brochures/${knownBrochureIds[0]}`,
-    `https://www.handelsangebote.de/api/brochure/${knownBrochureIds[0]}`,
-    `https://www.handelsangebote.de/api/products?brochureId=${knownBrochureIds[0]}`,
-    `https://www.handelsangebote.de/api/offers?brochureId=${knownBrochureIds[0]}`,
+  // 2. Try brochure listing endpoints WITH the real account ID
+  const listingCandidates = [
+    `https://www.kaufda.de/api/brochures?location=${plz}&country=DE&limit=50&bonialAccountId=${accountId}&userPlatformCategory=desktop.web.browser`,
+    `https://www.kaufda.de/api/brochures?postalCode=${plz}&country=DE&bonialAccountId=${accountId}`,
+    `https://www.kaufda.de/api/contents?location=${plz}&country=DE&limit=50&bonialAccountId=${accountId}&userPlatformCategory=desktop.web.browser`,
+    `https://www.kaufda.de/api/contents?location=${plz}&country=DE&limit=50&userPlatformCategory=desktop.web.browser`,
+    `https://www.kaufda.de/api/publications?location=${plz}&country=DE&bonialAccountId=${accountId}`,
+    `https://www.kaufda.de/api/v2/brochures?location=${plz}&country=DE&bonialAccountId=${accountId}&userPlatformCategory=desktop.web.browser`,
+    `https://www.kaufda.de/api/personalisedBrochures?location=${plz}&country=DE&bonialAccountId=${accountId}&userPlatformCategory=desktop.web.browser`,
+    `https://www.kaufda.de/api/feeds?location=${plz}&country=DE&bonialAccountId=${accountId}&userPlatformCategory=desktop.web.browser`,
   ]
 
-  const offeristProbes: object[] = []
-  for (const url of offeristaCandidates) {
+  const listingProbes: object[] = []
+  for (const url of listingCandidates) {
     try {
       const res = await fetch(url, { headers: HEADERS })
       const text = await res.text()
       let body: any = null
       try { body = JSON.parse(text) } catch { /* not json */ }
-      offeristProbes.push({
+
+      const topKeys = body ? Object.keys(body) : []
+      const firstArray = body ? (
+        body.brochures ?? body.contents ?? body.items ?? body.results ?? body.data ?? body.publications ?? []
+      ) : []
+
+      listingProbes.push({
         url,
         status: res.status,
-        isJson: body !== null,
-        keys: body ? Object.keys(body).slice(0, 10) : null,
-        preview: text.slice(0, 300),
+        topKeys,
+        arrayLength: firstArray.length,
+        firstItemPublisher: firstArray[0]?.publisherName ?? firstArray[0]?.name ?? null,
+        preview: text.slice(0, 400),
       })
-      if (res.ok) break
+
+      if (res.ok && firstArray.length > 0) break
     } catch (e) {
-      offeristProbes.push({ url, error: String(e) })
+      listingProbes.push({ url, error: String(e) })
     }
   }
 
-  // 3. Try fetching a known product ID from the tracking JSON
-  const knownProductId = 43766572
-  const productProbes: object[] = []
-  for (const url of [
-    `https://api.offerista.com/products/${knownProductId}`,
-    `https://www.handelsangebote.de/api/products/${knownProductId}`,
-  ]) {
-    try {
-      const res = await fetch(url, { headers: HEADERS })
-      const text = await res.text()
-      let body: any = null
-      try { body = JSON.parse(text) } catch { /* not json */ }
-      productProbes.push({ url, status: res.status, isJson: body !== null, preview: text.slice(0, 300) })
-      if (res.ok) break
-    } catch (e) {
-      productProbes.push({ url, error: String(e) })
-    }
-  }
-
-  return {
-    plz,
-    homeChunkStatus: homeChunkRes.status,
-    homeChunkSize: chunkFullText.length,
-    chunkApiUrls,
-    knownBrochureIds,
-    offeristApiProbes: offeristProbes,
-    productProbes,
-  }
+  return { plz, accountId, unknownBrochureId, unknownBrochureInfo, listingProbes }
 }
 
 // ─── Fetch flyers from handelsangebote.de ────────────────────────────────────
@@ -182,7 +166,7 @@ Deno.serve(async (req) => {
   // GET request or {"probe": true} → probe mode: find the real API endpoint
   if (req.method === "GET" || body.probe) {
     const plz = body.plz ?? "10115"
-    const result = await probeHandelsangebote(plz)
+    const result = await probeKaufda(plz)
     return new Response(JSON.stringify(result, null, 2), {
       status: 200,
       headers: { "Content-Type": "application/json" },
