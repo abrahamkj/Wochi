@@ -44,6 +44,17 @@ struct AlertsView: View {
                 }
             }
             .navigationTitle("alerts.nav.title")
+            .alert(
+                String(localized: "error.generic"),
+                isPresented: .init(
+                    get: { viewModel.errorMessage != nil },
+                    set: { if !$0 { viewModel.errorMessage = nil } }
+                )
+            ) {
+                Button("button.confirm", role: .cancel) { viewModel.errorMessage = nil }
+            } message: {
+                if let msg = viewModel.errorMessage { Text(verbatim: msg) }
+            }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     if viewModel.isLoading {

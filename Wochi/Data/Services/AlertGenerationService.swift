@@ -1,30 +1,38 @@
 import Foundation
 import SwiftData
 
-// MARK: - AlertGenerationService
-//
-// Compares recent purchase history against current flyer deals,
-// then inserts new SubstitutionAlerts for items that qualify
-// (≥15% savings, not brand-blocked, not already alerted this week).
-
 @MainActor
 final class AlertGenerationService {
     static let shared = AlertGenerationService()
 
+    // Returns an error string if something went wrong, nil on success.
     func generateAlerts(
         for household: Household,
         stores: [StoreChain],
         context: ModelContext
-    ) async {
+    ) async throws {
         let priceRepo = PriceRepository(context: context)
-        let recentItems = recentPurchasedItemNames(household: household, context: context)
-        guard !recentItems.isEmpty else { return }
 
+        // Fetch ALL active deals from Supabase for the household's stores.
+        let allDeals = try await priceRepo.fetchCurrentFlyers(for: stores)
+        guard !allDeals.isEmpty else { return }
+
+        // Optionally narrow to products the household has bought recently.
+        // If no purchase history exists yet, show every deal (good for new users).
+        let recentNames = recentPurchasedItemNames(household: household, context: context)
         let deals: [FlyerPrice]
-        do {
-            deals = try await priceRepo.checkForDeals(items: recentItems, stores: stores)
-        } catch {
-            return
+        if recentNames.isEmpty {
+            // No history — show every deal that meets the savings threshold
+            deals = allDeals.filter { $0.savingsPercent >= Constants.Budget.dealThresholdPercent }
+        } else {
+            // History exists — only show deals for products the user actually buys
+            let lower = recentNames.map { $0.lowercased() }
+            deals = allDeals.filter { price in
+                let priceName = price.productName.lowercased()
+                let meetsThreshold = price.savingsPercent >= Constants.Budget.dealThresholdPercent
+                let matches = lower.contains { n in priceName.contains(n) || n.contains(priceName) }
+                return meetsThreshold && matches
+            }
         }
 
         for deal in deals {
@@ -38,77 +46,48 @@ final class AlertGenerationService {
                 dealPrice:    deal.dealPrice,
                 validUntil:   deal.validUntil
             )
-            alert.preferredBrand  = deal.brand
-            alert.flyerImageURL   = deal.flyerImageURL
-            alert.validFrom       = deal.validFrom
-            alert.household       = household
+            alert.preferredBrand = deal.brand
+            alert.flyerImageURL  = deal.flyerImageURL
+            alert.validFrom      = deal.validFrom
+            alert.household      = household
             context.insert(alert)
         }
 
-        try? context.save()
+        try context.save()
     }
 
     // MARK: - Helpers
 
-    private func recentPurchasedItemNames(
-        household: Household,
-        context: ModelContext
-    ) -> [String] {
+    private func recentPurchasedItemNames(household: Household, context: ModelContext) -> [String] {
         let cutoff = Calendar.current.date(
             byAdding: .weekOfYear,
             value: -Constants.Budget.purchaseHistoryWeeks,
             to: Date()
         ) ?? Date()
-
-        // Fetch only checked items; filter by household and date in memory to avoid
-        // predicate type-check timeouts from deep optional chains + nil-coalescing.
-        let descriptor = FetchDescriptor<ShoppingItem>(
-            predicate: #Predicate { $0.isChecked }
-        )
+        let descriptor = FetchDescriptor<ShoppingItem>(predicate: #Predicate { $0.isChecked })
         let items = (try? context.fetch(descriptor)) ?? []
         let householdID = household.id
-        let unique = Set(
+        return Array(Set(
             items
-                .filter {
-                    $0.list?.household?.id == householdID &&
-                    ($0.checkedAt ?? .distantPast) >= cutoff
-                }
+                .filter { $0.list?.household?.id == householdID && ($0.checkedAt ?? .distantPast) >= cutoff }
                 .map { $0.name }
-        )
-        return Array(unique)
+        ))
     }
 
-    private func alertExists(
-        for productName: String,
-        household: Household,
-        context: ModelContext
-    ) -> Bool {
+    private func alertExists(for productName: String, household: Household, context: ModelContext) -> Bool {
         let weekAgo = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date()) ?? Date()
-        // Fetch by productName only; filter household + date in memory.
-        let descriptor = FetchDescriptor<SubstitutionAlert>(
-            predicate: #Predicate { $0.productName == productName }
-        )
+        let descriptor = FetchDescriptor<SubstitutionAlert>(predicate: #Predicate { $0.productName == productName })
         let householdID = household.id
-        let matches = (try? context.fetch(descriptor)) ?? []
-        let count = matches.filter {
-            $0.household?.id == householdID && $0.createdAt >= weekAgo
-        }.count
+        let count = ((try? context.fetch(descriptor)) ?? [])
+            .filter { $0.household?.id == householdID && $0.createdAt >= weekAgo }
+            .count
         return count >= Constants.Budget.maxAlertsPerProductPerWeek
     }
 
-    private func isBrandBlocked(
-        brand: String?,
-        household: Household,
-        context: ModelContext
-    ) -> Bool {
+    private func isBrandBlocked(brand: String?, household: Household, context: ModelContext) -> Bool {
         guard let brand else { return false }
-        // #Predicate doesn't support enum .rawValue — fetch all and filter in memory.
         let householdID = household.id
-        let items = (try? context.fetch(FetchDescriptor<ShoppingItem>())) ?? []
-        return items.contains {
-            $0.preferredBrand == brand &&
-            $0.brandTier == .never &&
-            $0.list?.household?.id == householdID
-        }
+        return ((try? context.fetch(FetchDescriptor<ShoppingItem>())) ?? [])
+            .contains { $0.preferredBrand == brand && $0.brandTier == .never && $0.list?.household?.id == householdID }
     }
 }

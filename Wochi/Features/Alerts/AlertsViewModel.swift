@@ -23,12 +23,15 @@ final class AlertsViewModel: ObservableObject {
         errorMessage = nil
         defer { isLoading = false }
 
-        let stores = preferredStores()
-        await AlertGenerationService.shared.generateAlerts(
-            for: household,
-            stores: stores,
-            context: context
-        )
+        do {
+            try await AlertGenerationService.shared.generateAlerts(
+                for: household,
+                stores: preferredStores(),
+                context: context
+            )
+        } catch {
+            errorMessage = error.localizedDescription
+        }
         fetchAlerts()
     }
 
