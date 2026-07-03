@@ -28,39 +28,23 @@ const HEADERS = {
   "Origin": "https://www.kaufda.de",
 }
 
-// ─── Probe handler (GET) — Kaufda/Bonial brochure listing discovery ──────────
+// ─── Probe handler (GET) — content-viewer-be.kaufda.de discovery ─────────────
+// User found: https://content-viewer-be.kaufda.de/v1/brochures/{uuid}/pages?partner=kaufda_web&lat=...&lng=...
 async function probeKaufda(plz: string): Promise<object> {
-  // Real bonialAccountId captured from user's browser session
   const accountId = "b48bdfb7-1abf-4462-946c-e5cec3bbe64e"
+  // Coordinates for PLZ 10115 (Berlin Mitte)
+  const lat = 52.5251
+  const lng = 13.3697
 
-  // 1. Identify the unknown second brochure the user captured
-  const unknownBrochureId = "b627b292-36a9-4e38-b4c4-a281ce03827f"
-  const brochureCheckUrl = `https://www.kaufda.de/api/personalisedOffers?brochureId=${unknownBrochureId}&size=5&bonialAccountId=${accountId}&userPlatformCategory=desktop.web.browser`
-  let unknownBrochureInfo: object = {}
-  try {
-    const res = await fetch(brochureCheckUrl, { headers: HEADERS })
-    const data = await res.json()
-    const first = data.contents?.[0]
-    unknownBrochureInfo = {
-      status: res.status,
-      publisherName: first?.publisherName,
-      title: first?.title,
-      totalItems: data.contents?.length,
-    }
-  } catch (e) {
-    unknownBrochureInfo = { error: String(e) }
-  }
-
-  // 2. Try brochure listing endpoints WITH the real account ID
+  // 1. Try brochure LISTING on content-viewer-be.kaufda.de
   const listingCandidates = [
-    `https://www.kaufda.de/api/brochures?location=${plz}&country=DE&limit=50&bonialAccountId=${accountId}&userPlatformCategory=desktop.web.browser`,
-    `https://www.kaufda.de/api/brochures?postalCode=${plz}&country=DE&bonialAccountId=${accountId}`,
-    `https://www.kaufda.de/api/contents?location=${plz}&country=DE&limit=50&bonialAccountId=${accountId}&userPlatformCategory=desktop.web.browser`,
-    `https://www.kaufda.de/api/contents?location=${plz}&country=DE&limit=50&userPlatformCategory=desktop.web.browser`,
-    `https://www.kaufda.de/api/publications?location=${plz}&country=DE&bonialAccountId=${accountId}`,
-    `https://www.kaufda.de/api/v2/brochures?location=${plz}&country=DE&bonialAccountId=${accountId}&userPlatformCategory=desktop.web.browser`,
-    `https://www.kaufda.de/api/personalisedBrochures?location=${plz}&country=DE&bonialAccountId=${accountId}&userPlatformCategory=desktop.web.browser`,
-    `https://www.kaufda.de/api/feeds?location=${plz}&country=DE&bonialAccountId=${accountId}&userPlatformCategory=desktop.web.browser`,
+    `https://content-viewer-be.kaufda.de/v1/brochures?partner=kaufda_web&lat=${lat}&lng=${lng}&limit=50`,
+    `https://content-viewer-be.kaufda.de/v1/brochures?partner=kaufda_web&lat=${lat}&lng=${lng}&radius=10&limit=50`,
+    `https://content-viewer-be.kaufda.de/v1/brochures?partner=kaufda_web&zipCode=${plz}&limit=50`,
+    `https://content-viewer-be.kaufda.de/v1/brochures?partner=kaufda_web&postalCode=${plz}&country=DE&limit=50`,
+    `https://content-viewer-be.kaufda.de/v2/brochures?partner=kaufda_web&lat=${lat}&lng=${lng}&limit=50`,
+    `https://content-viewer-be.kaufda.de/v1/catalogs?partner=kaufda_web&lat=${lat}&lng=${lng}&limit=50`,
+    `https://content-viewer-be.kaufda.de/v1/publications?partner=kaufda_web&lat=${lat}&lng=${lng}&limit=50`,
   ]
 
   const listingProbes: object[] = []
@@ -70,28 +54,54 @@ async function probeKaufda(plz: string): Promise<object> {
       const text = await res.text()
       let body: any = null
       try { body = JSON.parse(text) } catch { /* not json */ }
-
-      const topKeys = body ? Object.keys(body) : []
-      const firstArray = body ? (
-        body.brochures ?? body.contents ?? body.items ?? body.results ?? body.data ?? body.publications ?? []
-      ) : []
-
+      const arr = body ? (body.brochures ?? body.contents ?? body.items ?? body.results ?? body.data ?? body.catalogs ?? []) : []
       listingProbes.push({
-        url,
-        status: res.status,
-        topKeys,
-        arrayLength: firstArray.length,
-        firstItemPublisher: firstArray[0]?.publisherName ?? firstArray[0]?.name ?? null,
-        preview: text.slice(0, 400),
+        url, status: res.status,
+        keys: body ? Object.keys(body) : [],
+        arrayLength: arr.length,
+        firstItem: arr[0] ? JSON.stringify(arr[0]).slice(0, 300) : null,
+        preview: !body ? text.slice(0, 300) : null,
       })
-
-      if (res.ok && firstArray.length > 0) break
+      if (res.ok && arr.length > 0) break
     } catch (e) {
       listingProbes.push({ url, error: String(e) })
     }
   }
 
-  return { plz, accountId, unknownBrochureId, unknownBrochureInfo, listingProbes }
+  // 2. Fetch pages of the known brochure the user found to understand the data shape
+  const knownBrochureId = "df23802c-92b6-4c05-87ed-0f5eb54328cf"
+  let pagesData: object = {}
+  try {
+    const res = await fetch(
+      `https://content-viewer-be.kaufda.de/v1/brochures/${knownBrochureId}/pages?partner=kaufda_web&brochureKey=&lat=${lat}&lng=${lng}`,
+      { headers: HEADERS }
+    )
+    const text = await res.text()
+    let body: any = null
+    try { body = JSON.parse(text) } catch { /* not json */ }
+    pagesData = {
+      status: res.status,
+      keys: body ? Object.keys(body) : [],
+      preview: text.slice(0, 600),
+    }
+  } catch (e) {
+    pagesData = { error: String(e) }
+  }
+
+  // 3. Try to get brochure metadata (publisher name) for the known brochure
+  let brochureMeta: object = {}
+  try {
+    const res = await fetch(
+      `https://content-viewer-be.kaufda.de/v1/brochures/${knownBrochureId}?partner=kaufda_web`,
+      { headers: HEADERS }
+    )
+    const text = await res.text()
+    brochureMeta = { status: res.status, preview: text.slice(0, 400) }
+  } catch (e) {
+    brochureMeta = { error: String(e) }
+  }
+
+  return { plz, lat, lng, listingProbes, knownBrochurePagesData: pagesData, knownBrochureMeta: brochureMeta }
 }
 
 // ─── Fetch flyers from handelsangebote.de ────────────────────────────────────
