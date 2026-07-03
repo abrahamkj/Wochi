@@ -5,23 +5,8 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 )
 
-// Fixed device ID — Kaufda uses this for personalisation but doesn't validate it
-const BONIAL_ACCOUNT_ID = "wochi-service-00000000-0000-0000-0000-000000000001"
+const GROCERY_STORES = ["lidl", "rewe", "kaufland", "edeka", "aldi", "penny", "netto", "dm", "rossmann", "norma", "aldi süd", "aldi nord"]
 
-// Grocery store publisher IDs on Kaufda (Bonial DE)
-// Find yours: Network tab → look for calls to /api/publishers or /api/brochures
-// These are the most common German grocery retailers
-const GROCERY_PUBLISHERS: Record<string, string> = {
-  "Lidl":      "lidl-de",       // adjust to actual publisherId values
-  "REWE":      "rewe",
-  "Kaufland":  "kaufland",
-  "Edeka":     "edeka",
-  "Aldi":      "aldi-sued",
-  "Penny":     "penny",
-  "Netto":     "netto",
-}
-
-// German city PLZ codes to cover major regions
 const LOCATIONS = [
   { plz: "10115", city: "Berlin" },
   { plz: "20095", city: "Hamburg" },
@@ -34,118 +19,96 @@ const LOCATIONS = [
 ]
 
 const HEADERS = {
-  "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
-  "Accept": "application/json",
+  "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "Accept": "application/json, text/plain, */*",
   "Accept-Language": "de-DE,de;q=0.9",
-  "Referer": "https://www.kaufda.de/",
+  "Referer": "https://www.handelsangebote.de/",
+  "Origin": "https://www.handelsangebote.de",
 }
 
-// ─── Step 1: Discover active brochures for a location ────────────────────────
-async function fetchBrochures(plz: string): Promise<{ ids: string[], debug: object }> {
+// ─── Probe handler (GET) — find the real API ──────────────────────────────────
+async function probeHandelsangebote(plz: string): Promise<object> {
   const candidates = [
-    `https://www.kaufda.de/api/brochures?location=${plz}&country=DE&limit=50&userPlatformCategory=desktop.web.browser`,
-    `https://www.kaufda.de/api/brochures?postalCode=${plz}&country=DE&limit=50`,
-    `https://www.kaufda.de/api/publications?location=${plz}&country=DE&limit=50`,
+    `https://www.handelsangebote.de/api/offers?zip=${plz}`,
+    `https://www.handelsangebote.de/api/v1/offers?zipCode=${plz}`,
+    `https://www.handelsangebote.de/api/v1/leaflets?zip=${plz}`,
+    `https://www.handelsangebote.de/api/leaflets?zip=${plz}&country=DE`,
+    `https://www.handelsangebote.de/api/publications?zip=${plz}`,
+    `https://www.handelsangebote.de/api/v2/offers?zip=${plz}&limit=20`,
+    `https://api.handelsangebote.de/v1/offers?zip=${plz}`,
+    `https://www.handelsangebote.de/api/stores?zip=${plz}`,
+    `https://www.handelsangebote.de/api/brochures?zip=${plz}`,
+    `https://www.handelsangebote.de/api/flyers?zip=${plz}`,
   ]
 
+  const results: object[] = []
+
   for (const url of candidates) {
-    const res = await fetch(url, { headers: HEADERS })
-    const status = res.status
+    try {
+      const res = await fetch(url, { headers: HEADERS })
+      const text = await res.text()
+      let body: any = null
+      try { body = JSON.parse(text) } catch { /* not JSON */ }
 
-    if (!res.ok) {
-      console.log(`  [brochures] ${url} → ${status}`)
-      continue
-    }
+      results.push({
+        url,
+        status: res.status,
+        contentType: res.headers.get("content-type"),
+        bodyPreview: text.slice(0, 500),
+        parsedKeys: body ? Object.keys(body) : null,
+        isJson: body !== null,
+      })
 
-    const raw = await res.text()
-    let data: any
-    try { data = JSON.parse(raw) } catch { continue }
-
-    const topKeys = Object.keys(data)
-    console.log(`  [brochures] ${url} → ${status}, top-level keys: ${topKeys.join(", ")}`)
-
-    const items: any[] = data.brochures ?? data.contents ?? data.items ?? data.results ?? data.data ?? []
-    console.log(`  [brochures] items array length: ${items.length}`)
-
-    if (items.length > 0) {
-      console.log(`  [brochures] first item sample: ${JSON.stringify(items[0]).slice(0, 300)}`)
-    }
-
-    const brochures: string[] = []
-    for (const b of items) {
-      const publisher = (b.publisherName ?? b.retailer ?? b.store ?? b.name ?? "").toLowerCase()
-      const isGrocery = Object.keys(GROCERY_PUBLISHERS).some(s => publisher.includes(s.toLowerCase()))
-      if (isGrocery) {
-        const id = b.id ?? b.brochureId ?? b.uuid ?? b.externalId
-        if (id) brochures.push(String(id))
-      }
-    }
-
-    return {
-      ids: brochures,
-      debug: { url, status, topKeys, totalItems: items.length, groceryMatches: brochures.length },
+      // Stop on first 200 that looks useful
+      if (res.ok && body !== null) break
+    } catch (e) {
+      results.push({ url, error: String(e) })
     }
   }
 
-  return { ids: [], debug: { tried: candidates, result: "all failed or empty" } }
+  return { plz, results }
 }
 
-// ─── Step 2: Fetch all offers from a brochure ────────────────────────────────
-async function fetchOffers(brochureId: string, plz: string): Promise<object[]> {
-  const url = [
-    `https://www.kaufda.de/api/personalisedOffers`,
-    `?brochureId=${brochureId}`,
-    `&size=100`,
-    `&bonialAccountId=${BONIAL_ACCOUNT_ID}`,
-    `&userPlatformCategory=desktop.web.browser`,
-  ].join("")
-
+// ─── Fetch flyers from handelsangebote.de ────────────────────────────────────
+// (populated once we know the real endpoint from probing)
+async function fetchHandelsangeboteOffers(plz: string): Promise<object[]> {
+  // TODO: update URL after probing confirms the correct endpoint
+  const url = `https://www.handelsangebote.de/api/offers?zip=${plz}&limit=100`
   const res = await fetch(url, { headers: HEADERS })
   if (!res.ok) return []
 
   const data = await res.json()
-  const contents: any[] = data.contents ?? []
+  const items: any[] = data.offers ?? data.items ?? data.results ?? data.data ?? data.contents ?? []
 
   const now = new Date().toISOString()
   const mapped: object[] = []
 
-  for (const item of contents) {
-    if (item.type !== "OFFER") continue
+  for (const item of items) {
+    const storeName = item.store?.name ?? item.retailer ?? item.publisherName ?? item.merchant ?? ""
+    const store = mapStore(storeName)
+    if (!store) continue
 
-    const store = mapStore(item.publisherName ?? "")
-    if (!store) continue  // skip non-grocery publishers
-
-    const mainPrice = item.prices?.mainPrice ?? 0
-    const secondaryPrice = item.prices?.secondaryPrice ?? 0
-
-    // secondaryPrice is the "was" price; mainPrice is the deal price
-    const dealPrice    = mainPrice > 0 ? mainPrice : 0
-    const regularPrice = secondaryPrice > 0 ? secondaryPrice : 0
+    const dealPrice    = item.price ?? item.dealPrice ?? item.offer_price ?? item.currentPrice ?? 0
+    const regularPrice = item.regularPrice ?? item.original_price ?? item.normalPrice ?? item.uvp ?? 0
 
     if (dealPrice <= 0) continue
-    if (!item.validUntil) continue
 
-    // Skip if already expired
-    if (item.validUntil < now) continue
+    const validUntil = item.validUntil ?? item.valid_until ?? item.end_date ?? item.validTo
+    if (!validUntil || validUntil < now) continue
 
-    // Only include items with a meaningful discount, or include all if no regular price
-    const savings = regularPrice > 0
-      ? ((regularPrice - dealPrice) / regularPrice) * 100
-      : 0
-    if (regularPrice > 0 && savings < 10) continue  // skip tiny discounts
-
-    const category = item.categories?.[0] ?? mapCategory(item.categoryPaths?.[0])
+    const savings = regularPrice > 0 ? ((regularPrice - dealPrice) / regularPrice) * 100 : 0
+    if (regularPrice > 0 && savings < 10) continue
 
     mapped.push({
-      product_name:    item.title?.trim(),
+      product_name:    (item.title ?? item.name ?? item.product_name ?? "").trim(),
       brand:           item.brand ?? null,
       store:           store,
-      regular_price:   regularPrice > 0 ? regularPrice : dealPrice * 1.25, // estimate if missing
+      regular_price:   regularPrice > 0 ? regularPrice : dealPrice * 1.25,
       deal_price:      dealPrice,
-      valid_from:      item.validFrom ?? now,
-      valid_until:     item.validUntil,
-      category:        category ?? null,
-      flyer_image_url: item.offerImages?.url?.normal ?? item.offerImages?.url?.thumbnail ?? null,
+      valid_from:      item.validFrom ?? item.valid_from ?? item.start_date ?? now,
+      valid_until:     validUntil,
+      category:        item.category ?? null,
+      flyer_image_url: item.image ?? item.imageUrl ?? item.thumbnail ?? null,
       postal_code:     plz,
     })
   }
@@ -155,8 +118,8 @@ async function fetchOffers(brochureId: string, plz: string): Promise<object[]> {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function mapStore(publisherName: string): string | null {
-  const n = publisherName.toLowerCase()
+function mapStore(name: string): string | null {
+  const n = name.toLowerCase()
   if (n.includes("kaufland"))  return "Kaufland"
   if (n.includes("lidl"))      return "Lidl"
   if (n.includes("rewe"))      return "REWE"
@@ -164,71 +127,52 @@ function mapStore(publisherName: string): string | null {
   if (n.includes("aldi"))      return "Aldi"
   if (n.includes("penny"))     return "Penny"
   if (n.includes("netto"))     return "Netto"
-  if (n.includes(" dm ") || n === "dm") return "dm"
+  if (n.includes("norma"))     return "Norma"
+  if (n === "dm" || n.startsWith("dm ") || n.includes(" dm")) return "dm"
   if (n.includes("rossmann"))  return "Rossmann"
-  return null  // not a grocery store we track
-}
-
-function mapCategory(path?: Array<{ name: string }>): string | null {
-  if (!path) return null
-  const last = path[path.length - 1]?.name?.toLowerCase() ?? ""
-  if (last.includes("milch") || last.includes("käse") || last.includes("molker")) return "dairy"
-  if (last.includes("fleisch") || last.includes("fisch") || last.includes("wurst")) return "meat"
-  if (last.includes("obst") || last.includes("gemüse")) return "fruit"
-  if (last.includes("brot") || last.includes("back")) return "bakery"
-  if (last.includes("getränk") || last.includes("wasser") || last.includes("saft")) return "drinks"
-  if (last.includes("tiefkühl")) return "frozen"
-  if (last.includes("hygiene") || last.includes("körper")) return "hygiene"
-  if (last.includes("drogerie") || last.includes("reinig") || last.includes("wasch")) return "cleaning"
-  return "other"
+  return null
 }
 
 // ─── Main handler ─────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
-  // Allow manual trigger with a specific PLZ: POST /refresh-flyers {"plz":"10115"}
   const body = req.method === "POST" ? await req.json().catch(() => ({})) : {}
+
+  // GET request or {"probe": true} → probe mode: find the real API endpoint
+  if (req.method === "GET" || body.probe) {
+    const plz = body.plz ?? "10115"
+    const result = await probeHandelsangebote(plz)
+    return new Response(JSON.stringify(result, null, 2), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    })
+  }
+
   const locations = body.plz
     ? [{ plz: body.plz, city: "custom" }]
     : LOCATIONS
 
   const allDeals: object[] = []
   const errors: string[] = []
-  const debugInfo: object[] = []
 
   for (const { plz, city } of locations) {
-    console.log(`Fetching brochures for ${city} (${plz})...`)
-
-    const { ids, debug } = await fetchBrochures(plz)
-    debugInfo.push({ plz, city, ...debug })
-
-    let brochureIds = ids
-
-    // Fallback: if brochure discovery fails, try direct brochure IDs from URL params
-    if (brochureIds.length === 0 && body.brochureIds) {
-      brochureIds = body.brochureIds
-    }
-
-    for (const brochureId of brochureIds) {
-      try {
-        const deals = await fetchOffers(brochureId, plz)
-        allDeals.push(...deals)
-        console.log(`  Brochure ${brochureId}: ${deals.length} deals`)
-      } catch (e) {
-        errors.push(`${plz}/${brochureId}: ${e}`)
-      }
+    console.log(`Fetching offers for ${city} (${plz})...`)
+    try {
+      const deals = await fetchHandelsangeboteOffers(plz)
+      allDeals.push(...deals)
+      console.log(`  ${city}: ${deals.length} deals`)
+    } catch (e) {
+      errors.push(`${plz}: ${e}`)
     }
   }
 
   if (allDeals.length === 0) {
     return new Response(JSON.stringify({
-      error: "No deals fetched. Share brochure IDs directly: POST {brochureIds: ['uuid1','uuid2'], plz: '10115'}",
+      error: "No deals found. Run GET /refresh-flyers to probe the API and find the correct endpoint.",
       errors,
-      debug: debugInfo,
     }), { status: 422, headers: { "Content-Type": "application/json" } })
   }
 
-  // Delete expired deals, upsert fresh ones
   await supabase.from("flyer_prices").delete().lt("valid_until", new Date().toISOString())
   const { error: insertError } = await supabase.from("flyer_prices").insert(allDeals)
 
