@@ -77,16 +77,18 @@ final class PriceRepository: PriceRepositoryProtocol {
     // MARK: - Cache helpers
 
     private func cachedPrices(for stores: [StoreChain]) throws -> [FlyerPrice]? {
-        let cutoff = Date().addingTimeInterval(-24 * 60 * 60)
+        let ageCutoff = Date().addingTimeInterval(-24 * 60 * 60)
+        // Keep the predicate to a single stored-property comparison;
+        // expiry and store filtering happen in memory.
         let descriptor = FetchDescriptor<FlyerCache>(
-            predicate: #Predicate { $0.fetchedAt > cutoff && !$0.isExpired }
+            predicate: #Predicate { $0.fetchedAt > ageCutoff }
         )
         let cached = try context.fetch(descriptor)
         guard !cached.isEmpty else { return nil }
+        let now = Date()
         let storeRawValues = stores.map { $0.rawValue }
-        return cached
-            .filter { storeRawValues.contains($0.storeName) }
-            .map { $0.asFlyerPrice }
+        let valid = cached.filter { $0.validUntil >= now && storeRawValues.contains($0.storeName) }
+        return valid.isEmpty ? nil : valid.map { $0.asFlyerPrice }
     }
 
     private func persistCache(_ prices: [FlyerPrice]) throws {
