@@ -5,6 +5,7 @@ import SwiftData
 final class AlertsViewModel: ObservableObject {
     @Published var alerts: [SubstitutionAlert] = []
     @Published var isLoading = false
+    @Published var errorMessage: String?
 
     var unreadCount: Int { alerts.filter { !$0.isRead && !$0.isDismissed }.count }
 
@@ -16,49 +17,72 @@ final class AlertsViewModel: ObservableObject {
         self.context = context
     }
 
-    func load() async {
+    // Fetch from Supabase → generate alerts → reload list
+    func refresh() async {
         isLoading = true
+        errorMessage = nil
         defer { isLoading = false }
-        let householdID = household.id
-        let descriptor = FetchDescriptor<SubstitutionAlert>(
-            predicate: #Predicate { $0.household?.id == householdID && !$0.isDismissed },
-            sortBy: [SortDescriptor(\.savingsPercent, order: .reverse)]
+
+        let stores = preferredStores()
+        await AlertGenerationService.shared.generateAlerts(
+            for: household,
+            stores: stores,
+            context: context
         )
-        alerts = (try? context.fetch(descriptor)) ?? []
+        fetchAlerts()
+    }
+
+    // Just reload from SwiftData (fast path for tab appear)
+    func load() async {
+        fetchAlerts()
+        // Also kick off a network refresh in the background
+        Task { await refresh() }
     }
 
     func markAsRead(_ alert: SubstitutionAlert) async {
         alert.isRead = true
         try? context.save()
-        await load()
+        fetchAlerts()
     }
 
     func dismiss(_ alert: SubstitutionAlert) async {
         alert.isDismissed = true
         try? context.save()
-        await load()
+        fetchAlerts()
     }
 
     func rate(_ alert: SubstitutionAlert, thumbsUp: Bool) async {
-        // Update brand preference for matching shopping items
-        // thumbsDown → mark brand as .never in household's items
-        if !thumbsUp {
+        if !thumbsUp, let brand = alert.preferredBrand {
+            // Mark brand as .never on all household items — in memory to avoid
+            // complex optional-chain #Predicate
             let householdID = household.id
-            // Capture the alert's preferredBrand as a local value so the predicate macro
-            // treats it as a constant value rather than trying to form a KeyPath.
-            let preferred = alert.preferredBrand
-            let descriptor = FetchDescriptor<ShoppingItem>(
-                predicate: #Predicate {
-                    $0.list?.household?.id == householdID &&
-                    $0.preferredBrand == preferred
-                }
-            )
-            if let items = try? context.fetch(descriptor) {
-                items.forEach { $0.brandTier = .never }
-            }
+            let all = (try? context.fetch(FetchDescriptor<ShoppingItem>())) ?? []
+            all.filter {
+                $0.preferredBrand == brand &&
+                $0.list?.household?.id == householdID
+            }.forEach { $0.brandTier = .never }
         }
         alert.isDismissed = true
         try? context.save()
-        await load()
+        fetchAlerts()
+    }
+
+    // MARK: - Helpers
+
+    private func fetchAlerts() {
+        // Fetch all non-dismissed alerts, filter by household in memory to avoid
+        // optional-chain predicate timeout
+        let descriptor = FetchDescriptor<SubstitutionAlert>(
+            predicate: #Predicate { !$0.isDismissed },
+            sortBy: [SortDescriptor(\.savingsPercent, order: .reverse)]
+        )
+        let householdID = household.id
+        let all = (try? context.fetch(descriptor)) ?? []
+        alerts = all.filter { $0.household?.id == householdID }
+    }
+
+    private func preferredStores() -> [StoreChain] {
+        let active = (household.preferredStores ?? []).filter { $0.isActive }.map { $0.storeChain }
+        return active.isEmpty ? StoreChain.allCases.filter { $0 != .other } : active
     }
 }

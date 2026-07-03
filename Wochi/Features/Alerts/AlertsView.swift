@@ -10,12 +10,18 @@ struct AlertsView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if viewModel.alerts.isEmpty {
+                if viewModel.isLoading && viewModel.alerts.isEmpty {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if viewModel.alerts.isEmpty {
                     EmptyStateView(
                         symbol: "tag.slash",
                         title: "alerts.empty.title",
-                        subtitle: "alerts.empty.subtitle"
+                        subtitle: supbaseConfigured
+                            ? "alerts.empty.subtitle"
+                            : "alerts.empty.setup_required"
                     )
+                    .padding(.horizontal, 32)
                 } else {
                     List {
                         ForEach(viewModel.alerts) { alert in
@@ -34,11 +40,29 @@ struct AlertsView: View {
                         }
                     }
                     .listStyle(.plain)
+                    .refreshable { await viewModel.refresh() }
                 }
             }
             .navigationTitle("alerts.nav.title")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    if viewModel.isLoading {
+                        ProgressView()
+                    } else {
+                        Button {
+                            Task { await viewModel.refresh() }
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                    }
+                }
+            }
             .task { await viewModel.load() }
         }
+    }
+
+    private var supbaseConfigured: Bool {
+        !Constants.Supabase.projectURL.contains("your-project-id")
     }
 }
 

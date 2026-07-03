@@ -191,6 +191,7 @@
 "alerts.nav.title" = "Angebote";
 "alerts.empty.title" = "Keine Angebote";
 "alerts.empty.subtitle" = "Keine aktuellen Angebote für deine Produkte.";
+"alerts.empty.setup_required" = "Verbinde dein Supabase-Projekt in Constants.swift, um Prospekt-Angebote zu erhalten.";
 "alerts.ignore" = "Ignorieren";
 "alerts.new.badge" = "Neu";
 "alerts.purchase.question" = "Hast du es gekauft?";

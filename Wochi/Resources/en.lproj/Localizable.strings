@@ -191,6 +191,7 @@
 "alerts.nav.title" = "Deals";
 "alerts.empty.title" = "No deals";
 "alerts.empty.subtitle" = "No current deals for your products.";
+"alerts.empty.setup_required" = "Connect your Supabase project in Constants.swift to start receiving flyer deals.";
 "alerts.ignore" = "Ignore";
 "alerts.new.badge" = "New";
 "alerts.purchase.question" = "Did you buy it?";
