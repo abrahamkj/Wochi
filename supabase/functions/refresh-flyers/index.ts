@@ -41,27 +41,53 @@ const HEADERS = {
 }
 
 // ─── Step 1: Discover active brochures for a location ────────────────────────
-async function fetchBrochures(plz: string): Promise<string[]> {
-  // This endpoint lists current brochures near a postal code.
-  // Verify/update by checking Network tab for calls containing "brochure" or "publication"
-  const url = `https://www.kaufda.de/api/brochures?location=${plz}&country=DE&limit=50&userPlatformCategory=desktop.web.browser`
-  const res = await fetch(url, { headers: HEADERS })
-  if (!res.ok) return []
+async function fetchBrochures(plz: string): Promise<{ ids: string[], debug: object }> {
+  const candidates = [
+    `https://www.kaufda.de/api/brochures?location=${plz}&country=DE&limit=50&userPlatformCategory=desktop.web.browser`,
+    `https://www.kaufda.de/api/brochures?postalCode=${plz}&country=DE&limit=50`,
+    `https://www.kaufda.de/api/publications?location=${plz}&country=DE&limit=50`,
+  ]
 
-  const data = await res.json()
+  for (const url of candidates) {
+    const res = await fetch(url, { headers: HEADERS })
+    const status = res.status
 
-  // Filter to grocery retailers only and extract brochure IDs
-  const brochures: string[] = []
-  const items = data.brochures ?? data.contents ?? data.items ?? data.results ?? []
-  for (const b of items) {
-    const publisher = (b.publisherName ?? b.retailer ?? b.name ?? "").toLowerCase()
-    const isGrocery = Object.keys(GROCERY_PUBLISHERS).some(s => publisher.includes(s.toLowerCase()))
-    if (isGrocery) {
-      const id = b.id ?? b.brochureId ?? b.uuid
-      if (id) brochures.push(id)
+    if (!res.ok) {
+      console.log(`  [brochures] ${url} → ${status}`)
+      continue
+    }
+
+    const raw = await res.text()
+    let data: any
+    try { data = JSON.parse(raw) } catch { continue }
+
+    const topKeys = Object.keys(data)
+    console.log(`  [brochures] ${url} → ${status}, top-level keys: ${topKeys.join(", ")}`)
+
+    const items: any[] = data.brochures ?? data.contents ?? data.items ?? data.results ?? data.data ?? []
+    console.log(`  [brochures] items array length: ${items.length}`)
+
+    if (items.length > 0) {
+      console.log(`  [brochures] first item sample: ${JSON.stringify(items[0]).slice(0, 300)}`)
+    }
+
+    const brochures: string[] = []
+    for (const b of items) {
+      const publisher = (b.publisherName ?? b.retailer ?? b.store ?? b.name ?? "").toLowerCase()
+      const isGrocery = Object.keys(GROCERY_PUBLISHERS).some(s => publisher.includes(s.toLowerCase()))
+      if (isGrocery) {
+        const id = b.id ?? b.brochureId ?? b.uuid ?? b.externalId
+        if (id) brochures.push(String(id))
+      }
+    }
+
+    return {
+      ids: brochures,
+      debug: { url, status, topKeys, totalItems: items.length, groceryMatches: brochures.length },
     }
   }
-  return brochures
+
+  return { ids: [], debug: { tried: candidates, result: "all failed or empty" } }
 }
 
 // ─── Step 2: Fetch all offers from a brochure ────────────────────────────────
@@ -168,11 +194,15 @@ Deno.serve(async (req) => {
 
   const allDeals: object[] = []
   const errors: string[] = []
+  const debugInfo: object[] = []
 
   for (const { plz, city } of locations) {
     console.log(`Fetching brochures for ${city} (${plz})...`)
 
-    let brochureIds = await fetchBrochures(plz)
+    const { ids, debug } = await fetchBrochures(plz)
+    debugInfo.push({ plz, city, ...debug })
+
+    let brochureIds = ids
 
     // Fallback: if brochure discovery fails, try direct brochure IDs from URL params
     if (brochureIds.length === 0 && body.brochureIds) {
@@ -194,6 +224,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       error: "No deals fetched. Share brochure IDs directly: POST {brochureIds: ['uuid1','uuid2'], plz: '10115'}",
       errors,
+      debug: debugInfo,
     }), { status: 422, headers: { "Content-Type": "application/json" } })
   }
 
