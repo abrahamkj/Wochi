@@ -57,16 +57,47 @@ async function probeHandelsangebote(plz: string): Promise<object> {
     try { apiRootBody = JSON.parse(t) } catch { apiRootBody = t.slice(0, 1000) }
   }
 
-  // 4. Try a JS bundle to extract API paths from it
-  let bundleApiPaths: string[] = []
+  // 4. Fetch the JS bundle and extract every URL / API hint
+  let bundleInfo: object = { skipped: true }
   if (scriptSrcs[0]) {
     const src = scriptSrcs[0].startsWith("http") ? scriptSrcs[0] : `https://www.handelsangebote.de${scriptSrcs[0]}`
     const bundleRes = await fetch(src, { headers: HEADERS })
+    const bundleStatus = bundleRes.status
+
     if (bundleRes.ok) {
       const bundleText = await bundleRes.text()
-      bundleApiPaths = [
-        ...bundleText.matchAll(/["'`](\/api\/[^"'`?]{2,60})["'`]/gi),
-      ].map(m => m[1]).filter((v, i, a) => a.indexOf(v) === i).slice(0, 30)
+      const size = bundleText.length
+
+      const extract = (re: RegExp) =>
+        [...bundleText.matchAll(re)].map(m => m[1]).filter((v, i, a) => a.indexOf(v) === i)
+
+      // Full https:// URLs in the bundle (any domain)
+      const fullUrls = extract(/["'`](https?:\/\/[^"'`\s]{10,120})["'`]/gi)
+        .filter(u => !u.includes("fonts.") && !u.includes("cdn.") && !u.includes("analytics"))
+        .slice(0, 40)
+
+      // Relative paths that look like API calls
+      const relativePaths = extract(/["'`](\/[a-z0-9_\-\/]{3,60})["'`]/gi)
+        .filter(p => p.includes("offer") || p.includes("product") || p.includes("flyer")
+                  || p.includes("brochure") || p.includes("store") || p.includes("search")
+                  || p.includes("zip") || p.includes("plz") || p.includes("postal"))
+        .slice(0, 30)
+
+      // fetch() / axios calls pattern
+      const fetchCalls = extract(/fetch\(["'`]([^"'`]{10,120})["'`]/gi).slice(0, 20)
+      const axiosCalls = extract(/axios\.[a-z]+\(["'`]([^"'`]{5,120})["'`]/gi).slice(0, 20)
+
+      // Config-like patterns: baseUrl, endpoint, apiUrl, host
+      const configVars = extract(/(?:baseUrl|endpoint|apiUrl|apiBase|host|serviceUrl)\s*[:=]\s*["'`]([^"'`]{5,120})["'`]/gi).slice(0, 20)
+
+      // ZIP/postal code query param patterns
+      const zipParams = extract(/["'`]([^"'`]{0,60}(?:zip|plz|postalCode|zipCode|postal)[^"'`]{0,60})["'`]/gi)
+        .filter(v => v.includes("/") || v.includes("?"))
+        .slice(0, 20)
+
+      bundleInfo = { src, bundleStatus, size, fullUrls, relativePaths, fetchCalls, axiosCalls, configVars, zipParams }
+    } else {
+      bundleInfo = { src, bundleStatus }
     }
   }
 
@@ -77,7 +108,7 @@ async function probeHandelsangebote(plz: string): Promise<object> {
     apiRootBody,
     apiUrlsFoundInHomepage: apiUrlMatches,
     scriptBundles: scriptSrcs,
-    apiPathsFoundInBundle: bundleApiPaths,
+    bundleInfo,
   }
 }
 
